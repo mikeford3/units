@@ -16,12 +16,6 @@
 
 //namespace hana = boost::hana;
 
-auto f() {
-  auto a = parse_units(si::length<1>{});
-  std::cout << a << "\n";
-  return a;
-}
-
 /*
 struct Vector3D {
   float x, y, z;

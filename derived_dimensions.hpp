@@ -35,10 +35,10 @@ namespace si {
   struct derived;
 
   template <class Arg>
-  constexpr std::false_type is_derived(Arg);
+  constexpr std::false_type is_derived(Arg) { return std::false_type{};}
 
   template <class... Args>
-  constexpr std::true_type is_derived(derived<Args...>);
+  constexpr std::true_type is_derived(derived<Args...>) { return std::true_type{};}
 
   namespace Impl {
     struct DimensionCounter {
@@ -135,7 +135,7 @@ namespace si {
 
     constexpr static auto Units = boost::hana::tuple<Args...>{};
     static_assert(boost::hana::all_of(Units, [](auto arg) {
-      return is_base_dimension(arg);
+      return is_base_dimension(arg) || is_derived(arg);
     }));
     // static_assert(is_base_dimension<Args...>);
     // : public decltype(parse_units<Args...>()) {
@@ -144,16 +144,7 @@ namespace si {
   template <class... Args>
   derived(Args... args)->derived<Args...>;
 
-  template <class Arg>
-  constexpr std::false_type is_derived(Arg) {
-    return std::false_type{};
-  }
-
-  template <class... Args>
-  constexpr std::true_type is_derived(derived<Args...>) {
-    return std::true_type{};
-  }
-
+ 
   static_assert(!is_derived(length<1>{}));
   static_assert(is_derived(derived<length<1>>{}));
   static_assert(is_derived(derived<length<1>, mass<1>>{}));
