@@ -2,19 +2,21 @@
 
 #include <array>
 #include <boost/hana.hpp>
+#include <cassert>
+#include <iostream>
 #include <ratio>
 #include <string>
-#include <vector>
-//#include <boost/hana/experimental/printable.hpp>
-#include <cassert>
 #include <utility>
+#include <vector>
 
 #include "base_dimensions.hpp"
 #include "derived_dimensions.hpp"
 #include "si_prefixes.hpp"
-//#include <iostream>
 
-//namespace hana = boost::hana;
+
+
+
+// namespace hana = boost::hana;
 
 /*
 struct Vector3D {
@@ -24,6 +26,8 @@ struct Vector3D {
     return *this;
   }
 };
+
+
 
 
 template<class Tag, class Units, class Ratio = std::ratio<1, 1>, class
