@@ -81,7 +81,9 @@ namespace si {
   }
 
   template <intmax_t N, intmax_t D>
-  constexpr std::string to_fractional() {
+  constexpr std::string to_fractional(std::integral_constant<intmax_t, N>,
+                                      std::integral_constant<intmax_t, D>) {
+
     auto number = to_integer_superscript<0>() + u8"\u22C5" +
                   to_integer_superscript<100 / (D / N)>();
     return number;
@@ -98,7 +100,6 @@ namespace si {
                std::to_string(std::numeric_limits<float>::infinity());
       }
     }
-
     constexpr auto positive[[maybe_unused]] = [&] { return N > 0 && D > 0; };
     constexpr auto negative[[maybe_unused]] = [&] { return !positive(); };
     constexpr auto root_symbol[[maybe_unused]] = [&] {
@@ -106,29 +107,23 @@ namespace si {
     };
     constexpr auto int_power = [&] { return N % D == 0; };
     constexpr auto nice_fraction[[maybe_unused]] = [&] { return D % N == 0; };
-    constexpr auto sign = positive() ? "" : u8"\u207B";
+    constexpr auto sign[[maybe_unused]] = positive() ? "" : u8"\u207B";
+    constexpr auto absN[[maybe_unused]] = positive() ? N : -N;
+    constexpr auto absNc[[maybe_unused]] = std::integral_constant<intmax_t, absN>{};
+    constexpr auto Nc[[maybe_unused]] = std::integral_constant<intmax_t, N>{};
+    constexpr auto Dc[[maybe_unused]] = std::integral_constant<intmax_t, D>{};
+
     if constexpr (int_power()) {
-      if constexpr (positive()) {
-        if constexpr (N / D != 1) {
-          return base_unit + to_integer_superscript<N / D>();
-        } else {
-          return base_unit;
-        }
-      } else if constexpr (negative()) {
-        return base_unit + u8"\u207B" + to_integer_superscript<-N / D>();
-      }
+      if constexpr (N / D == 1)
+        return base_unit;
+      return base_unit + sign + to_integer_superscript<absN / D>();
     } else if constexpr (nice_fraction()) {
-      if constexpr (root_symbol()) {
-        return to_root<N, D>() + base_unit;
-      } else if constexpr (positive()) {
-        return base_unit + to_fractional<N, D>();
-      } else if constexpr (negative()) {
-        return base_unit + u8"\u207B" + to_fractional<-N, D>();
-      }
-    } else if constexpr (positive()) {
-      return base_unit + " pos";
-    } else if constexpr (negative()) {
-      return base_unit + " neg";
+      if constexpr (root_symbol())
+        return to_root<absN, D>() + base_unit;
+      return base_unit + sign + to_fractional(absNc, Dc);
+    } else {
+      return base_unit + sign + to_integer_superscript<0>() + u8"\u22C5" +
+             to_integer_superscript<absN * 100 / D>();
     }
   }
 

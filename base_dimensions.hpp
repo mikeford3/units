@@ -1,23 +1,23 @@
 #pragma once
-#include <ratio>
 #include <boost/hana.hpp>
+#include <ratio>
 
 namespace si {
-  template <intmax_t N=1, intmax_t D=1>
+  template <intmax_t N = 1, intmax_t D = 1>
   struct BaseUnit {
     constexpr static auto exp = std::ratio<N, D>{};
   };
 #define MAKE_BASE_UNIT(NAME)                                                   \
-  template <intmax_t N=1, intmax_t D=1>                                                \
-  struct NAME : BaseUnit<N, D> {                                           \
-    using BaseUnit<N, D>::BaseUnit;                                        \
+  template <intmax_t N = 1, intmax_t D = 1>                                    \
+  struct NAME : BaseUnit<N, D> {                                               \
+    using BaseUnit<N, D>::BaseUnit;                                            \
   };                                                                           \
   template <class Arg>                                                         \
   constexpr auto is_##NAME(Arg) {                                              \
     return std::false_type{};                                                  \
   }                                                                            \
-  template <intmax_t N, intmax_t D>                                                             \
-  constexpr auto is_##NAME(NAME<N, D>) {                                          \
+  template <intmax_t N, intmax_t D>                                            \
+  constexpr auto is_##NAME(NAME<N, D>) {                                       \
     return std::true_type{};                                                   \
   }
 
