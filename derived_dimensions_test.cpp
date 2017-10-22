@@ -8,23 +8,32 @@ SCENARIO("Derived") {
     std::cout << a << "\n" << b << "\n";
     using speed = si::derived<si::length<1>, si::time<-1>>;
     std::cout << si::derived<speed>{};
-    std::cout << "\n";
-    std::cout << si::derived<si::length<1, 2>>{}
-              << "\n"; // << si::derived<si::length<-1, 2>>{};
-    std::cout << "i = 0, " << si::derived<si::length<0>>{} << "\n";
-    std::cout << "i = 1, " << si::derived<si::length<1>>{} << "\n";
-    std::cout << "i = 2, " << si::derived<si::length<2>>{} << "\n";
-    std::cout << "i = 3, " << si::derived<si::length<3>>{} << "\n";
-    std::cout << "i = 4, " << si::derived<si::length<4>>{} << "\n";
-    std::cout << "i = 5, " << si::derived<si::length<5>>{} << "\n";
-    std::cout << "i = 6, " << si::derived<si::length<6>>{} << "\n";
-    std::cout << "i = 7, " << si::derived<si::length<7>>{} << "\n";
-    std::cout << "i = 8, " << si::derived<si::length<8>>{} << "\n";
-    std::cout << "i = 9, " << si::derived<si::length<9>>{} << "\n";
-    std::cout << "i = 10, " << si::derived<si::length<10>>{} << "\n";
-    std::cout << "i = 11, " << si::derived<si::length<11>>{} << "\n";
-    std::cout << "i = 12, " << si::derived<si::length<12>>{} << "\n";
-    std::cout << "i = 13, " << si::derived<si::length<13>>{} << "\n";
+    std::cout << "\nPositive roots : \n"
+              << si::derived<si::length<1, 2>>{} << "\t"
+              << si::derived<si::length<1, 3>>{} << "\t"
+              << si::derived<si::length<1, 4>>{} << "\t"
+              << si::derived<si::length<1, 5>>{} << "\t"
+              << si::derived<si::length<1, 6>>{} << "\t"
+              << si::derived<si::length<1, 7>>{} << "\n"
+              << si::derived<si::length<1, 8>>{} << "\t"
+              << si::derived<si::length<2, 4>>{} << "\t"
+              << si::derived<si::length<2, 5>>{} << "\t"
+              << si::derived<si::length<2, 7>>{} << "\n";
+
+    std::cout << "\nPositive ints : \n"
+              << si::derived<si::length<0>>{} << "\t"
+              << si::derived<si::length<1>>{} << "\t"
+              << si::derived<si::length<2>>{} << "\t"
+              << si::derived<si::length<3>>{} << "\t"
+              << si::derived<si::length<4>>{} << "\t"
+              << si::derived<si::length<5>>{} << "\t"
+              << si::derived<si::length<6>>{} << "\n"
+              << si::derived<si::length<7>>{} << "\t"
+              << si::derived<si::length<8>>{} << "\t"
+              << si::derived<si::length<9>>{} << "\t"
+              << si::derived<si::length<10>>{} << "\t"
+              << si::derived<si::length<11>>{} << "\t"
+              << si::derived<si::length<12>>{} << "\n";
   }
 }
 /*

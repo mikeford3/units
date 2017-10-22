@@ -5,6 +5,8 @@
 #include <iostream>
 #include <limits>
 #include <locale>
+#include <stdio.h>
+#include <string.h>
 
 namespace si {
   template <class Arg>
@@ -37,8 +39,11 @@ namespace si {
   };
 
   template <intmax_t digit>
-  constexpr std::string to_superscript() {
-    static_assert(digit >= 0);
+  constexpr std::string to_integer_superscript() {
+    if constexpr (digit < 0) {
+      assert(false);
+      return "";
+    }
     if constexpr (digit == 0)
       return u8"\u2070";
     else if constexpr (digit == 1)
@@ -59,8 +64,27 @@ namespace si {
       return u8"\u2078";
     else if constexpr (digit == 9)
       return u8"\u2079";
-     else
-      return to_superscript<digit / 10>() + to_superscript<digit % 10>();
+    else
+      return to_integer_superscript<digit / 10>() +
+             to_integer_superscript<digit % 10>();
+  }
+
+  template <intmax_t N, intmax_t D>
+  constexpr std::string to_root() {
+    static_assert(D / N <= 4 && D / N >= 2);
+    if constexpr (D / N == 2)
+      return u8"\u221A";
+    else if constexpr (D / N == 3)
+      return u8"\u221B";
+    else if constexpr (D / N == 4)
+      return u8"\u221C";
+  }
+
+  template <intmax_t N, intmax_t D>
+  constexpr std::string to_fractional() {
+    auto number = to_integer_superscript<0>() + u8"\u22C5" +
+                  to_integer_superscript<100 / (D / N)>();
+    return number;
   }
 
   template <intmax_t N, intmax_t D>
@@ -74,26 +98,39 @@ namespace si {
                std::to_string(std::numeric_limits<float>::infinity());
       }
     }
-    // if whole number
-    // else if nice fraction, square root etc
-    // else nasty number 1.23532,,
-    if constexpr (N % D == 0) {
-      if constexpr (N / D > 0)
-        return base_unit + to_superscript<N / D>();
-      else
-        return base_unit + u8"\u207B" + to_superscript<-N / D>();
-    } else if constexpr (D % N == 0 && N > 0 && D > 0) {
-      // std::cout << u8"square root = '" << u8"\u221A" << "'\n";
-      if constexpr (D / N == 2)
-        return u8"\u221A" + base_unit;
-      else if constexpr (D / N == 3)
-        return u8"\u221B" + base_unit;
-      else if constexpr (D / N == 4)
-        return u8"\u221C" + base_unit;
-    } else {
-      return base_unit + "^" + std::to_string(static_cast<double>(N) / D);
+
+    constexpr auto positive[[maybe_unused]] = [&] { return N > 0 && D > 0; };
+    constexpr auto negative[[maybe_unused]] = [&] { return !positive(); };
+    constexpr auto root_symbol[[maybe_unused]] = [&] {
+      return D / N == 2 || D / N == 3 || D / N == 4;
+    };
+    constexpr auto int_power = [&] { return N % D == 0; };
+    constexpr auto nice_fraction[[maybe_unused]] = [&] { return D % N == 0; };
+    constexpr auto sign = positive() ? "" : u8"\u207B";
+    if constexpr (int_power()) {
+      if constexpr (positive()) {
+        if constexpr (N / D != 1) {
+          return base_unit + to_integer_superscript<N / D>();
+        } else {
+          return base_unit;
+        }
+      } else if constexpr (negative()) {
+        return base_unit + u8"\u207B" + to_integer_superscript<-N / D>();
+      }
+    } else if constexpr (nice_fraction()) {
+      if constexpr (root_symbol()) {
+        return to_root<N, D>() + base_unit;
+      } else if constexpr (positive()) {
+        return base_unit + to_fractional<N, D>();
+      } else if constexpr (negative()) {
+        return base_unit + u8"\u207B" + to_fractional<-N, D>();
+      }
+    } else if constexpr (positive()) {
+      return base_unit + " pos";
+    } else if constexpr (negative()) {
+      return base_unit + " neg";
     }
-  } // namespace si
+  }
 
   template <class L, class M, class T, class C, class Te, class A, class Lu>
   std::ostream& operator<<(std::ostream& os,
