@@ -1,10 +1,10 @@
 #pragma once
+#include "base_dimensions.hpp"
 #include <boost/hana.hpp>
 #include <cassert>
 #include <iostream>
 #include <limits>
-
-#include "base_dimensions.hpp"
+#include <locale>
 
 namespace si {
   template <class Arg>
@@ -36,40 +36,83 @@ namespace si {
     static_assert(is_ratio(luminosity{}));
   };
 
+  template <intmax_t digit>
+  constexpr std::string to_superscript() {
+    static_assert(digit >= 0);
+    if constexpr (digit == 0)
+      return u8"\u2070";
+    else if constexpr (digit == 1)
+      return u8"\u00B9";
+    else if constexpr (digit == 2)
+      return u8"\u00B2";
+    else if constexpr (digit == 3)
+      return u8"\u00B3";
+    else if constexpr (digit == 4)
+      return u8"\u2074";
+    else if constexpr (digit == 5)
+      return u8"\u2075";
+    else if constexpr (digit == 6)
+      return u8"\u2076";
+    else if constexpr (digit == 7)
+      return u8"\u2077";
+    else if constexpr (digit == 8)
+      return u8"\u2078";
+    else if constexpr (digit == 9)
+      return u8"\u2079";
+     else
+      return to_superscript<digit / 10>() + to_superscript<digit % 10>();
+  }
+
   template <intmax_t N, intmax_t D>
-  constexpr auto print_power(std::ratio<N, D>) {
+  constexpr std::string print_unit(std::ratio<N, D>, std::string base_unit) {
+    using namespace std::string_literals;
     if constexpr (D == 0) {
       if constexpr (N == 0) {
-        return 0;
+        return "";
       } else {
-        return std::numeric_limits<float>::infinity;
+        return base_unit + "^" +
+               std::to_string(std::numeric_limits<float>::infinity());
       }
     }
+    // if whole number
+    // else if nice fraction, square root etc
+    // else nasty number 1.23532,,
     if constexpr (N % D == 0) {
-      return N / D;
+      if constexpr (N / D > 0)
+        return base_unit + to_superscript<N / D>();
+      else
+        return base_unit + u8"\u207B" + to_superscript<-N / D>();
+    } else if constexpr (D % N == 0 && N > 0 && D > 0) {
+      // std::cout << u8"square root = '" << u8"\u221A" << "'\n";
+      if constexpr (D / N == 2)
+        return u8"\u221A" + base_unit;
+      else if constexpr (D / N == 3)
+        return u8"\u221B" + base_unit;
+      else if constexpr (D / N == 4)
+        return u8"\u221C" + base_unit;
     } else {
-      return static_cast<double>(static_cast<double>(N) / D);
+      return base_unit + "^" + std::to_string(static_cast<double>(N) / D);
     }
-  }
+  } // namespace si
 
   template <class L, class M, class T, class C, class Te, class A, class Lu>
   std::ostream& operator<<(std::ostream& os,
                            Dimensions<L, M, T, C, Te, A, Lu>) {
     using type = Dimensions<L, M, T, C, Te, A, Lu>;
     if constexpr (type::length::num != 0)
-      os << "m^" << print_power(L{});
+      os << print_unit(L{}, "m");
     if constexpr (type::mass::num != 0)
-      os << "kg^" << print_power(M{});
+      os << print_unit(M{}, "kg");
     if constexpr (type::time::num != 0)
-      os << "s^" << print_power(T{});
+      os << print_unit(T{}, "s");
     if constexpr (type::current::num != 0)
-      os << "A^" << print_power(C{});
+      os << print_unit(C{}, "A");
     if constexpr (type::temperature::num != 0)
-      os << "K^" << print_power(Te{});
+      os << print_unit(Te{}, "K");
     if constexpr (type::amount::num != 0)
-      os << "mol^" << print_power(A{});
+      os << print_unit(A{}, "mol");
     if constexpr (type::luminosity::num != 0)
-      os << "cd^" << print_power(Lu{});
+      os << print_unit(Lu{}, "cd");
 
     return os;
   }
@@ -140,11 +183,19 @@ namespace si {
         count.time += Arg::exp;
       } else if constexpr (is_mass(arg)) {
         count.mass += Arg::exp;
+      } else if (is_temperature(arg)) {
+        count.temperature += Arg::exp;
+      } else if (is_amount(arg)) {
+        count.amount += Arg::exp;
+      } else if (is_luminosity(arg)) {
+        count.luminosity += Arg::exp;
+      } else if (is_current(arg)) {
+        count.current += Arg::exp;
       } else {
         assert(false);
       }
       return count;
-    }
+    } // namespace Impl
 
     template <class Arg>
     constexpr DimensionCounter parse_arg(Arg arg) {
