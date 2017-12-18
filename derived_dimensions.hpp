@@ -2,11 +2,7 @@
 #include "base_dimensions.hpp"
 #include <boost/hana.hpp>
 #include <cassert>
-#include <iostream>
-#include <limits>
-#include <locale>
-#include <stdio.h>
-#include <string.h>
+#include <exception>
 
 namespace si {
   template <class Arg>
@@ -18,7 +14,7 @@ namespace si {
   constexpr std::true_type is_ratio(std::ratio<N, D>) {
     return std::true_type{};
   }
-
+  /** Compile time class which holds a std::ratio for each */
   template <class Length, class Mass, class Time, class Current,
             class Temperature, class Amount, class Luminosity>
   struct Dimensions {
@@ -38,117 +34,7 @@ namespace si {
     static_assert(is_ratio(luminosity{}));
   };
 
-  template <intmax_t digit>
-  constexpr std::string to_integer_superscript() {
-    if constexpr (digit < 0) {
-      assert(false);
-      return "";
-    }
-    if constexpr (digit == 0)
-      return u8"\u2070";
-    else if constexpr (digit == 1)
-      return u8"\u00B9";
-    else if constexpr (digit == 2)
-      return u8"\u00B2";
-    else if constexpr (digit == 3)
-      return u8"\u00B3";
-    else if constexpr (digit == 4)
-      return u8"\u2074";
-    else if constexpr (digit == 5)
-      return u8"\u2075";
-    else if constexpr (digit == 6)
-      return u8"\u2076";
-    else if constexpr (digit == 7)
-      return u8"\u2077";
-    else if constexpr (digit == 8)
-      return u8"\u2078";
-    else if constexpr (digit == 9)
-      return u8"\u2079";
-    else
-      return to_integer_superscript<digit / 10>() +
-             to_integer_superscript<digit % 10>();
-  }
-
-  template <intmax_t N, intmax_t D>
-  constexpr std::string to_root() {
-    static_assert(D / N <= 4 && D / N >= 2);
-    if constexpr (D / N == 2)
-      return u8"\u221A";
-    else if constexpr (D / N == 3)
-      return u8"\u221B";
-    else if constexpr (D / N == 4)
-      return u8"\u221C";
-  }
-
-  template <intmax_t N, intmax_t D>
-  constexpr std::string to_fractional(std::integral_constant<intmax_t, N>,
-                                      std::integral_constant<intmax_t, D>) {
-
-    auto number = to_integer_superscript<0>() + u8"\u22C5" +
-                  to_integer_superscript<100 / (D / N)>();
-    return number;
-  }
-
-  template <intmax_t N, intmax_t D>
-  constexpr std::string print_unit(std::ratio<N, D>, std::string base_unit) {
-    using namespace std::string_literals;
-    if constexpr (D == 0) {
-      if constexpr (N == 0) {
-        return "";
-      } else {
-        return base_unit + "^" +
-               std::to_string(std::numeric_limits<float>::infinity());
-      }
-    }
-    constexpr auto positive[[maybe_unused]] = [&] { return N > 0 && D > 0; };
-    constexpr auto negative[[maybe_unused]] = [&] { return !positive(); };
-    constexpr auto root_symbol[[maybe_unused]] = [&] {
-      return D / N == 2 || D / N == 3 || D / N == 4;
-    };
-    constexpr auto int_power = [&] { return N % D == 0; };
-    constexpr auto nice_fraction[[maybe_unused]] = [&] { return D % N == 0; };
-    constexpr auto sign[[maybe_unused]] = positive() ? "" : u8"\u207B";
-    constexpr auto absN[[maybe_unused]] = positive() ? N : -N;
-    constexpr auto absNc[[maybe_unused]] = std::integral_constant<intmax_t, absN>{};
-    constexpr auto Nc[[maybe_unused]] = std::integral_constant<intmax_t, N>{};
-    constexpr auto Dc[[maybe_unused]] = std::integral_constant<intmax_t, D>{};
-
-    if constexpr (int_power()) {
-      if constexpr (N / D == 1)
-        return base_unit;
-      return base_unit + sign + to_integer_superscript<absN / D>();
-    } else if constexpr (nice_fraction()) {
-      if constexpr (root_symbol())
-        return to_root<absN, D>() + base_unit;
-      return base_unit + sign + to_fractional(absNc, Dc);
-    } else {
-      return base_unit + sign + to_integer_superscript<0>() + u8"\u22C5" +
-             to_integer_superscript<absN * 100 / D>();
-    }
-  }
-
-  template <class L, class M, class T, class C, class Te, class A, class Lu>
-  std::ostream& operator<<(std::ostream& os,
-                           Dimensions<L, M, T, C, Te, A, Lu>) {
-    using type = Dimensions<L, M, T, C, Te, A, Lu>;
-    if constexpr (type::length::num != 0)
-      os << print_unit(L{}, "m");
-    if constexpr (type::mass::num != 0)
-      os << print_unit(M{}, "kg");
-    if constexpr (type::time::num != 0)
-      os << print_unit(T{}, "s");
-    if constexpr (type::current::num != 0)
-      os << print_unit(C{}, "A");
-    if constexpr (type::temperature::num != 0)
-      os << print_unit(Te{}, "K");
-    if constexpr (type::amount::num != 0)
-      os << print_unit(A{}, "mol");
-    if constexpr (type::luminosity::num != 0)
-      os << print_unit(Lu{}, "cd");
-
-    return os;
-  }
-
+  // Fwd declartion
   template <class... Args>
   struct derived;
 
@@ -181,12 +67,6 @@ namespace si {
           return *this;
         }
       };
-      /*
-            template<class rtrat>
-            constexpr auto to_std_ratio<runtime_ratio rat>() {
-              constexpr auto N = rat.n;
-              return std::ratio<rat.n, rat.d>{};
-            }*/
       runtime_ratio length{0, 1};
       runtime_ratio mass{0, 1};
       runtime_ratio time{0, 1};
@@ -215,13 +95,13 @@ namespace si {
         count.time += Arg::exp;
       } else if constexpr (is_mass(arg)) {
         count.mass += Arg::exp;
-      } else if (is_temperature(arg)) {
+      } else if constexpr (is_temperature(arg)) {
         count.temperature += Arg::exp;
-      } else if (is_amount(arg)) {
+      } else if constexpr (is_amount(arg)) {
         count.amount += Arg::exp;
-      } else if (is_luminosity(arg)) {
+      } else if constexpr (is_luminosity(arg)) {
         count.luminosity += Arg::exp;
-      } else if (is_current(arg)) {
+      } else if constexpr (is_current(arg)) {
         count.current += Arg::exp;
       } else {
         assert(false);
@@ -239,20 +119,15 @@ namespace si {
       } else if constexpr (si::is_base_dimension(arg)) {
         count += parse_base_unit(arg);
       } else {
-        assert(false);
+        // throw std::logic_error("Oops");
+        // std::cout << "Oops\n";
+        // assert(false);
       }
       return count;
     }
 
-    template <class... Args>
-    constexpr auto parse_units(Args... args) {
-      auto count = DimensionCounter{};
-      constexpr auto tup_args = boost::hana::make_tuple(args...);
-      boost::hana::for_each(
-          tup_args, [&count](auto arg) { count += Impl::parse_arg(arg); });
-      return count;
-    }
-
+    /** At compile time create a dimension counter and add all of the Args to
+     * it. */
     template <class... Args>
     constexpr auto parse_units() {
       auto count = DimensionCounter{};
@@ -264,18 +139,8 @@ namespace si {
     }
   } // namespace Impl
 
-  template <class... Args>
-  constexpr auto parse_units(Args... args) {
-    constexpr auto count = Impl::parse_units(args...);
-    return Dimensions<std::ratio<count.length.n, count.length.d>,
-                      std::ratio<count.mass.n, count.mass.d>,
-                      std::ratio<count.time.n, count.time.d>,
-                      std::ratio<count.current.n, count.current.d>,
-                      std::ratio<count.temperature.n, count.temperature.d>,
-                      std::ratio<count.amount.n, count.amount.d>,
-                      std::ratio<count.luminosity.n, count.luminosity.d>>{};
-  }
-
+  /** Collect a number of derived or base dimension classes into a single one.
+   */
   template <class... Args>
   constexpr auto parse_units() {
     constexpr auto count = Impl::parse_units<Args...>();
@@ -287,10 +152,10 @@ namespace si {
                       std::ratio<count.amount.n, count.amount.d>,
                       std::ratio<count.luminosity.n, count.luminosity.d>>{};
   }
-
+  /** Collect a number of dereived or base dimension classes into a single one
+   * using the parse_units constexpr function */
   template <class... Args>
   struct derived : decltype(parse_units<Args...>()) {
-
     constexpr static auto Units = boost::hana::tuple<Args...>{};
     static_assert(boost::hana::all_of(Units, [](auto arg) {
       return is_base_dimension(arg) || is_derived(arg);
@@ -298,11 +163,17 @@ namespace si {
     // static_assert(is_base_dimension<Args...>);
     // : public decltype(parse_units<Args...>()) {
   };
+  template <template <class... Args0>, template <class... Args1>>
+  constexpr auto operator*(derived<Args0...> a, derived<Args1...> b) {
+    return false;
+  }
 
-  template <class... Args>
-  derived(Args... args)->derived<Args...>;
+      // Deduction guide
+      template <class... Args>
+      derived(Args... args) -> derived<Args...>;
 
   static_assert(!is_derived(length<1>{}));
   static_assert(is_derived(derived<length<1>>{}));
   static_assert(is_derived(derived<length<1>, mass<1>>{}));
+
 } // namespace si

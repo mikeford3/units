@@ -1,0 +1,390 @@
+#pragma once
+
+#include <chrono>
+#include <cmath>
+#include <ostream>
+#include <tuple>
+#include <type_traits>
+
+#include <gsl/gsl>
+
+class IsAlgebraic;
+class NotAlgebraic;
+class IsComparable;
+class NotComparable;
+
+using TimeBaseUnit = float;
+
+template<class ratio>
+class TimeUnit : public std::chrono::duration<TimeBaseUnit, ratio> {
+  using std::chrono::duration<TimeBaseUnit, ratio>::duration;
+};
+
+using Seconds = TimeUnit<std::ratio<1,1>>;
+using Minutes = TimeUnit<std::ratio<60,1>>;
+using Hours = TimeUnit<std::ratio<3600,1>>;
+using Days = TimeUnit<std::ratio<3600*24,1>>;
+
+
+
+
+template <class Resource, class Interval>
+class Rate;
+
+struct Unity {
+  static constexpr int scale = 1;
+};
+struct Kilo {
+  static constexpr int scale = 1000;
+};
+struct Mega {
+  static constexpr int scale = 1000000;
+};
+struct Giga {
+  static constexpr int scale = Mega::scale * 1000;
+};
+struct Milli {
+  static constexpr float scale = 1.f / 1000;
+};
+struct Mico {
+  static constexpr float scale = 1.f / 1000000;
+};
+struct Nano {
+  static constexpr float scale = 1.f / 1000000000;
+};
+
+template <class Proxy, class T, class Unit, class Algebraic, class Comparable>
+class StrongTypedef;
+
+template <class Proxy, class T, class Unit0, class Unit1, class Algebraic,
+          class Comparable>
+constexpr auto
+rescale(const StrongTypedef<Proxy, T, Unit0, Algebraic, Comparable>& a,
+        const StrongTypedef<Proxy, T, Unit1, Algebraic, Comparable>& b) {
+  using T0 = StrongTypedef<Proxy, T, Unit0, Algebraic, Comparable>;
+  using T1 = StrongTypedef<Proxy, T, Unit1, Algebraic, Comparable>;
+  if
+    constexpr(Unit0::scale == Unit1::scale) {
+      return std::tuple<const T0&, const T1&>(a, b);
+    }
+  else if
+    constexpr(Unit0::scale == 1) {
+      return std::tuple<const T0&, T0>(a,
+                                       T0{b.underlying_value() * Unit1::scale});
+    }
+  else if
+    constexpr(Unit1::scale == 1) {
+      return std::tuple<T1, const T1&>(T1{a.underlying_value() * Unit0::scale},
+                                       b);
+    }
+  else {
+    return std::tuple<const T0&, T0>(
+        a, T0{b.underlying_value() * (Unit1::scale / Unit0::scale)});
+  }
+}
+
+template <class Proxy, class T, class Unit, class Algebraic = IsAlgebraic,
+          class Comparable = IsComparable>
+struct StrongTypedef {
+  using type_t = StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>;
+  template <class Unit1>
+  using differet_scale = StrongTypedef<Proxy, T, Unit1, Algebraic, Comparable>;
+  using Proxy_t = Proxy;
+  using UnderlyingType = T;
+  using Scale = Unit;
+  T val;
+  constexpr explicit StrongTypedef() = default;
+  constexpr explicit StrongTypedef(const StrongTypedef&) = default;
+  constexpr explicit StrongTypedef(StrongTypedef&&) = default;
+  constexpr type_t& operator=(const StrongTypedef&) = default;
+  constexpr type_t& operator=(StrongTypedef&&) = default;
+
+  template <class Unit_>
+  constexpr StrongTypedef(
+      const StrongTypedef<Proxy, T, Unit_, Algebraic, Comparable>& other)
+      : val(other.val * Unit_::scale / Scale::scale) {}
+
+  constexpr explicit StrongTypedef(T a) : val{a} {
+    ; // static_assert(validate_proxy_and_scale<Proxy, Unit>());
+  }
+  constexpr const T& underlying_value() const noexcept { return val; }
+
+  // extra template parameter to force instantation to occur only when
+  // function is called, not when class in instatiated
+  template <class U = Algebraic>
+  constexpr std::enable_if_t<std::is_same<U, IsAlgebraic>::value, type_t&>
+  operator+=(const type_t& other) {
+    val += other.val;
+    return *this;
+  }
+
+  template <class U = Algebraic>
+  constexpr std::enable_if_t<std::is_same<U, IsAlgebraic>::value, type_t&>
+  operator-=(const type_t& other) {
+    val -= other.val;
+    return *this;
+  }
+
+  template <class U = Algebraic>
+  constexpr std::enable_if_t<std::is_same<U, IsAlgebraic>::value &&
+                                 std::is_integral<T>::value,
+                             type_t&>
+  operator++() {
+    ++val;
+    return *this;
+  }
+
+  template <class U = Algebraic>
+  constexpr std::enable_if_t<
+      std::is_same<U, IsAlgebraic>::value && std::is_integral<T>::value, type_t>
+  operator++(int) {
+    auto tmp = type_t{*this};
+    ++val;
+    return tmp;
+  }
+
+  template <class U = Algebraic>
+  constexpr std::enable_if_t<std::is_same<U, IsAlgebraic>::value &&
+                                 std::is_integral<T>::value,
+                             type_t&>
+  operator--() {
+    --val;
+    return *this;
+  }
+
+  template <class U = Algebraic>
+  constexpr std::enable_if_t<
+      std::is_same<U, IsAlgebraic>::value && std::is_integral<T>::value, type_t>
+  operator--(int) {
+    auto tmp = type_t{*this};
+    --val;
+    return tmp;
+  }
+
+  template <class Mult>
+  constexpr std::enable_if_t<std::is_same<Algebraic, IsAlgebraic>::value &&
+                                 (std::is_floating_point<Mult>::value ||
+                                  std::is_integral<Mult>::value),
+                             type_t&>
+  operator*=(Mult mul) {
+    val *= mul;
+    return *this;
+  }
+
+  template <class Div>
+  constexpr std::enable_if_t<std::is_same<Algebraic, IsAlgebraic>::value &&
+                                 (std::is_floating_point<Div>::value ||
+                                  std::is_integral<Div>::value),
+                             type_t&>
+  operator/=(Div div) {
+    val /= div;
+    return *this;
+  }
+
+  template <class, class, class, class>
+  friend std::ostream& operator<<(std::ostream&, const type_t&);
+  template <class, class, class, class>
+  friend type_t std::fabs(const type_t&);
+};
+static_assert(sizeof(StrongTypedef<int, int, IsAlgebraic, IsComparable>) ==
+              sizeof(int));
+
+template <class Proxy, class T, class Unit, class Algebraic, class Comparable>
+std::ostream&
+operator<<(std::ostream& os,
+           const StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>& a) {
+  os << a.val << " (x" << Unit::scale << ")";
+  return os;
+}
+
+namespace std {
+  template <class Proxy, class T, class Unit, class Algebraic, class Comparable>
+  StrongTypedef<Proxy, T, Unit, Algebraic, Comparable> constexpr fabs(
+      const StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>& a) {
+    return StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>{
+        std::fabs(a.val)};
+  }
+}
+
+template <class Proxy, class T, class Unit0, class Unit1, class Algebraic,
+          class Comparable,
+          typename = typename std::enable_if<
+              std::is_same<Comparable, IsComparable>::value>::type>
+constexpr bool
+operator<=(const StrongTypedef<Proxy, T, Unit0, Algebraic, Comparable>& a,
+           const StrongTypedef<Proxy, T, Unit1, Algebraic, Comparable>& b) {
+  const auto & [ aa, bb ] = rescale(a, b);
+  return aa.val <= bb.val;
+}
+
+template <class Proxy, class T, class Unit0, class Unit1, class Algebraic,
+          class Comparable,
+          typename = typename std::enable_if<
+              std::is_same<Comparable, IsComparable>::value>::type>
+constexpr bool
+operator<(const StrongTypedef<Proxy, T, Unit0, Algebraic, Comparable>& a,
+          const StrongTypedef<Proxy, T, Unit1, Algebraic, Comparable>& b) {
+  const auto & [ aa, bb ] = rescale(a, b);
+  return aa.val < bb.val;
+}
+/*
+template <class Proxy, class T, class Unit, class Algebraic, class Comparable,
+          typename = typename std::enable_if<
+              std::is_same<Comparable, IsComparable>::value>::type>
+constexpr bool
+operator>(const StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>& a,
+          int zero) {
+  Expects(zero == 0); // I want to check that variable is > 0, nothing else
+  return a.val > zero;
+}*/
+
+template <class Proxy, class T, class Unit0, class Unit1, class Algebraic,
+          class Comparable,
+          typename = typename std::enable_if<
+              std::is_same<Comparable, IsComparable>::value>::type>
+constexpr bool
+operator>(const StrongTypedef<Proxy, T, Unit0, Algebraic, Comparable>& a,
+          const StrongTypedef<Proxy, T, Unit1, Algebraic, Comparable>& b) {
+  const auto & [ aa, bb ] = rescale(a, b);
+  return aa.val > bb.val;
+}
+
+// using enable if in the template list
+template <class Proxy, class T, class Unit0, class Unit1, class Algebraic,
+          class Comparable,
+          typename = typename std::enable_if<
+              std::is_same<Comparable, IsComparable>::value>::type>
+constexpr bool
+operator>=(const StrongTypedef<Proxy, T, Unit0, Algebraic, Comparable>& a,
+           const StrongTypedef<Proxy, T, Unit1, Algebraic, Comparable>& b) {
+  const auto & [ aa, bb ] = rescale(a, b);
+  return aa.val >= bb.val;
+}
+// using enable_if to allow the return type
+template <class Proxy, class T, class Unit0, class Unit1, class Algebraic,
+          class Comparable>
+constexpr std::enable_if_t<std::is_same<Comparable, IsComparable>::value, bool>
+operator==(const StrongTypedef<Proxy, T, Unit0, Algebraic, Comparable>& a,
+           const StrongTypedef<Proxy, T, Unit1, Algebraic, Comparable>& b) {
+  const auto & [ aa, bb ] = rescale(a, b);
+  return aa.val == bb.val;
+}
+
+// using enable_if to allow the return type
+template <class Proxy, class T, class Unit0, class Unit1, class Algebraic,
+          class Comparable>
+constexpr std::enable_if_t<std::is_same<Comparable, IsComparable>::value, bool>
+operator!=(const StrongTypedef<Proxy, T, Unit0, Algebraic, Comparable>& a,
+           const StrongTypedef<Proxy, T, Unit1, Algebraic, Comparable>& b) {
+  return !(a == b);
+}
+
+// using enable_if to allow the return type
+template <class Proxy, class T, class Unit0, class Unit1, class Algebraic,
+          class Comparable>
+constexpr std::enable_if_t<
+    std::is_same<Algebraic, IsAlgebraic>::value,
+    StrongTypedef<Proxy, T, Unit0, Algebraic, Comparable>>
+operator+(const StrongTypedef<Proxy, T, Unit0, Algebraic, Comparable>& a,
+          const StrongTypedef<Proxy, T, Unit1, Algebraic, Comparable>& b) {
+  auto tmp = a;
+  tmp += b;
+  return tmp;
+}
+
+// using enable_if to allow the return type
+template <class Proxy, class T, class Unit0, class Unit1, class Algebraic,
+          class Comparable>
+constexpr std::enable_if_t<
+    std::is_same<Algebraic, IsAlgebraic>::value,
+    StrongTypedef<Proxy, T, Unit0, Algebraic, Comparable>>
+operator-(const StrongTypedef<Proxy, T, Unit0, Algebraic, Comparable>& a,
+          const StrongTypedef<Proxy, T, Unit1, Algebraic, Comparable>& b) {
+  auto tmp = a;
+  tmp -= b;
+  return tmp;
+}
+
+// using enable_if to allow the return type
+template <class Proxy, class T, class Unit, class Algebraic, class Comparable,
+          class Mult>
+constexpr std::enable_if_t<std::is_same<Algebraic, IsAlgebraic>::value &&
+                               (std::is_floating_point<Mult>::value ||
+                                std::is_integral<Mult>::value),
+                           StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>>
+operator*(const StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>& a,
+          Mult mult) {
+  return StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>{a.val * mult};
+}
+
+// using enable_if to allow the return type
+template <class Proxy, class T, class Unit, class Algebraic, class Comparable,
+          class Mult>
+constexpr std::enable_if_t<std::is_same<Algebraic, IsAlgebraic>::value &&
+                               (std::is_floating_point<Mult>::value ||
+                                std::is_integral<Mult>::value),
+                           StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>>
+operator*(Mult mult,
+          const StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>& a) {
+  return a * mult;
+}
+
+// using enable_if to allow the return type
+template <class Proxy, class T, class Unit, class Algebraic, class Comparable,
+          class Divisor>
+constexpr std::enable_if_t<std::is_same<Algebraic, IsAlgebraic>::value &&
+                               (std::is_floating_point<Divisor>::value ||
+                                std::is_integral<Divisor>::value),
+                           StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>>
+operator/(const StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>& a,
+          Divisor div) {
+  return StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>{a.val / div};
+}
+
+// using enable_if to allow the return type
+template <class Proxy, class T, class Unit0, class Unit1, class Algebraic,
+          class Comparable>
+constexpr std::enable_if_t<std::is_same<Algebraic, IsAlgebraic>::value,
+                           decltype(T{} / T{})>
+operator/(const StrongTypedef<Proxy, T, Unit0, Algebraic, Comparable>& a,
+          const StrongTypedef<Proxy, T, Unit1, Algebraic, Comparable>& b) {
+  const auto & [ aa, bb ] = rescale(a, b);
+  return aa.val / bb.val;
+}
+
+template <class Resource, class Interval = Seconds>
+struct Rate : public Resource {
+  using Period_t = Interval;
+  static_assert(std::is_same<decltype(Rate::val),
+                             typename Resource::UnderlyingType>::value);
+  static_assert(std::is_same_v<Interval, Seconds> ||
+                std::is_same_v<Interval, Minutes> ||
+                std::is_same_v<Interval, Hours> ||
+                std::is_same_v<Interval, Days>);
+  constexpr Rate() : Resource() {}
+  constexpr Rate(Resource res) : Resource{res.val} {
+    static_assert(sizeof(Rate) == sizeof(Resource));
+  }
+  template <class OtherResource, class OtherInterval>
+  constexpr Rate(const Rate<OtherResource, OtherInterval>& other)
+      : Resource(other * (Interval::period::num * OtherInterval::period::den) /
+                 (Interval::period::den * OtherInterval::period::num)) {}
+
+  constexpr Rate(typename Resource::UnderlyingType val) : Resource{val} {}
+};
+
+template <class Resource>
+constexpr Resource operator*(const Rate<Resource>& rate, Seconds interval) {
+  return Resource{rate.val * interval.count()};
+}
+
+// using enable_if to allow the return type
+template <class Proxy, class T, class Unit, class Algebraic, class Comparable>
+constexpr std::enable_if_t<
+    std::is_same<Algebraic, IsAlgebraic>::value,
+    Rate<StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>>>
+operator/(const StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>& a,
+          Seconds interval) {
+  return Rate<StrongTypedef<Proxy, T, Unit, Algebraic, Comparable>>{
+      a.val / interval.count()};
+}

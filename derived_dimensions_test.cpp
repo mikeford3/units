@@ -1,4 +1,5 @@
 #include "derived_dimensions.hpp"
+#include "derived_dimensions_printing.hpp"
 #include <catch.hpp>
 
 SCENARIO("Derived") {
@@ -8,9 +9,8 @@ SCENARIO("Derived") {
     std::cout << a << "\n" << b << "\n";
     using speed = si::derived<si::length<1>, si::time<-1>>;
     std::cout << si::derived<speed>{};
-    std::cout << "\nPositive roots : \n\t"
-              << si::derived<si::length<1, 2>>{} << "\t"
-              << si::derived<si::length<1, 3>>{} << "\t"
+    std::cout << "\nPositive roots : \n\t" << si::derived<si::length<1, 2>>{}
+              << "\t" << si::derived<si::length<1, 3>>{} << "\t"
               << si::derived<si::length<1, 4>>{} << "\t"
               << si::derived<si::length<1, 5>>{} << "\t"
               << si::derived<si::length<1, 6>>{} << "\t"
@@ -20,9 +20,8 @@ SCENARIO("Derived") {
               << si::derived<si::length<2, 5>>{} << "\t"
               << si::derived<si::length<2, 7>>{} << "\n";
 
-    std::cout << "Negative roots : \n\t"
-              << si::derived<si::length<-1, 2>>{} << "\t"
-              << si::derived<si::length<-1, 3>>{} << "\t"
+    std::cout << "Negative roots : \n\t" << si::derived<si::length<-1, 2>>{}
+              << "\t" << si::derived<si::length<-1, 3>>{} << "\t"
               << si::derived<si::length<-1, 4>>{} << "\t"
               << si::derived<si::length<-1, 5>>{} << "\t"
               << si::derived<si::length<-1, 6>>{} << "\t"
@@ -32,9 +31,8 @@ SCENARIO("Derived") {
               << si::derived<si::length<-2, 5>>{} << "\t"
               << si::derived<si::length<-2, 7>>{} << "\n";
 
-    std::cout << "Positive ints (and 0): \n\t"
-              << si::derived<si::length<0>>{} << "\t"
-              << si::derived<si::length<1>>{} << "\t"
+    std::cout << "Positive ints (and 0): \n\t" << si::derived<si::length<0>>{}
+              << "\t" << si::derived<si::length<1>>{} << "\t"
               << si::derived<si::length<2>>{} << "\t"
               << si::derived<si::length<3>>{} << "\t"
               << si::derived<si::length<4>>{} << "\t"
@@ -47,9 +45,8 @@ SCENARIO("Derived") {
               << si::derived<si::length<11>>{} << "\t"
               << si::derived<si::length<12>>{} << "\n";
 
-    std::cout << "Negative ints (and 0): \n\t"
-              << si::derived<si::length<-0>>{} << "\t"
-              << si::derived<si::length<-1>>{} << "\t"
+    std::cout << "Negative ints (and 0): \n\t" << si::derived<si::length<-0>>{}
+              << "\t" << si::derived<si::length<-1>>{} << "\t"
               << si::derived<si::length<-2>>{} << "\t"
               << si::derived<si::length<-3>>{} << "\t"
               << si::derived<si::length<-4>>{} << "\t"
@@ -62,7 +59,8 @@ SCENARIO("Derived") {
               << si::derived<si::length<-11>>{} << "\t"
               << si::derived<si::length<-12>>{} << "\n";
 
-    std::cout << si::derived<si::length<2>, si::time<-1>, si::mass<1>>{} << "\n";
+    std::cout << si::derived<si::length<2>, si::time<-1>, si::mass<1>>{}
+              << "\n";
   }
 }
 /*
