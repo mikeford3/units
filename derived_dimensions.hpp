@@ -74,7 +74,7 @@ namespace si {
     }
 
     template <class... Args0, class... Args1>
-    constexpr auto multiply(Dimensions<Args0...> a, Dimensions<Args1...> b) {
+    constexpr auto multiply(Dimensions<Args0...> a = Dimensions<Args0...>{}, Dimensions<Args1...> b = Dimensions<Args1...>{}) {
       return dimensions_operator<std::ratio_add>(a, b);
     }
 
@@ -195,6 +195,7 @@ namespace si {
    * If passed a Dimensions class will just inherit from it. */
   template <class... Args>
   struct derived : decltype(parse_units<Args...>()) {
+    using Base = decltype(parse_units<Args...>());
     constexpr static auto Units = boost::hana::tuple<Args...>{};
     static_assert(boost::hana::all_of(Units, [](auto arg) {
       return is_base_dimension(arg) || is_derived(arg) || is_dimensions(arg);
@@ -206,6 +207,12 @@ namespace si {
 
     //}
   };
+  template <class... Args0, class... Args1>
+  constexpr auto operator*(derived<Args0...> a, derived<Args1...> b) {
+    change code to only use derived type to construct things, everything else should use Dimensions directly?
+    using new_dimensions = decltype(Impl::multiply<typename derived<Args0...>::Base, typename derived<Args1...>::Base>());;
+    return derived<new_dimensions>{};
+  }
   /*
   // template <template <class... Args0> class Der0,  template <class... Args1>
   // class Der1>

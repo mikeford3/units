@@ -97,6 +97,25 @@ template <class Units0, class Units1, class Ratio0, class Ratio1,
           class BaseType, class Tag>
 constexpr auto operator*(const Quantity<Units0, Ratio0, BaseType, Tag>& a,
                          const Quantity<Units1, Ratio1, BaseType, Tag>& b) {
-  return false;
-  // return Quantity<Units, Ratio, BaseType, Tag>{a.underlying_value() * b};
+  //using Units = decltype(si::Impl::multiply(Units0{}, Units1{}));
+  using Units = decltype(Units0{} * Units1{});
+  if constexpr (std::is_same_v<Ratio0, Ratio1>) {
+    return Quantity<Units, Ratio0, BaseType, Tag>{a.underlying_value() *
+                                                  b.underlying_value()};
+  } else if constexpr (Ratio0::num == 1 && Ratio0::den == 1) {
+    using Ratio2 = std::ratio_divide<Ratio0, Ratio1>;
+    return Quantity<Units, Ratio0, BaseType, Tag>{a.underlying_value() *
+                                                  b.underlying_value() *
+                                                  Ratio2::num / Ratio2::den};
+  } else if constexpr (Ratio1::num == 1 && Ratio1::den == 1) {
+    using Ratio2 = std::ratio_divide<Ratio1, Ratio0>;
+    return Quantity<Units, Ratio1, BaseType, Tag>{a.underlying_value() *
+                                                  b.underlying_value() *
+                                                  Ratio2::num / Ratio2::den};
+  } else {
+    using Ratio2 = std::ratio_divide<Ratio0, Ratio1>;
+    return Quantity<Units, Ratio0, BaseType, Tag>{a.underlying_value() *
+                                                  b.underlying_value() *
+                                                  Ratio2::num / Ratio2::den};
+  }
 }

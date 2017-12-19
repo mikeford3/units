@@ -62,16 +62,29 @@ SCENARIO("Derived") {
     std::cout << si::derived<si::length<2>, si::time<-1>, si::mass<1>>{}
               << "\n";
   }
-  GIVEN("A dimension") {
+  GIVEN("the same dimensions with different powers") {
     auto a = si::derived<si::length<1>>{};
     auto b = si::derived<si::length<-10>>{};
     WHEN("Multiplying them together") {
       auto c = si::Impl::multiply(a, b);
-      std::cout << "\n" << a << " + " << b << " = " << c << "\n";
+      std::cout  << a << " * " << b << " = " << c << "\n";
     }
     WHEN("Dividing them together") {
       auto c = si::Impl::divide(a, b);
-      std::cout << "\n" << a << " + " << b << " = " << c << "\n";
+      std::cout  << a << " / " << b << " = " << c << "\n";
+    }
+  }
+
+    GIVEN("different dimensions with different powers") {
+    auto a = si::derived<si::length<1>>{};
+    auto b = si::derived<si::mass<-10>>{};
+    WHEN("Multiplying them together") {
+      auto c = si::Impl::multiply(a, b);
+      std::cout  << a << " * " << b << " = " << c << "\n";
+    }
+    WHEN("Dividing them together") {
+      auto c = si::Impl::divide(a, b);
+      std::cout  << a << " / " << b << " = " << c << "\n";
     }
   }
 }

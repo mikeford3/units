@@ -1,5 +1,6 @@
 #include "quantity.hpp"
 #include <catch.hpp>
+#include <iostream>
 
 SCENARIO("Create some quantities of physical units") {
   using metre = si::derived<si::L<1>>;
@@ -7,6 +8,14 @@ SCENARIO("Create some quantities of physical units") {
     const double dval = 10.;
     auto quant = Quantity<metre>{dval};
     REQUIRE(quant.underlying_value() == dval);
+    WHEN("multiply a quanity by itself") {
+      auto quant_sq = quant * quant;
+      THEN("the units must have changed") {
+       //std::cout << quant;
+       std::cout << quant_sq;
+        static_assert(std::is_same_v<Quantity<si::derived<si::length<2>>>, decltype(quant_sq)>);
+      }
+    }
     WHEN("operating with floating points") {
       WHEN("dividing") {
         auto divided = quant / 1.5;
