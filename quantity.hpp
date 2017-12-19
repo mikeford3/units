@@ -93,11 +93,10 @@ constexpr auto operator*(const Mult& b,
   return Quantity<Units, Ratio, BaseType, Tag>{a.underlying_value() * b};
 }
 
-template <class Units0, class Units1, class Ratio0, class Ratio1, class BaseType, class Tag>
+template <class Units0, class Units1, class Ratio0, class Ratio1,
+          class BaseType, class Tag>
 constexpr auto operator*(const Quantity<Units0, Ratio0, BaseType, Tag>& a,
                          const Quantity<Units1, Ratio1, BaseType, Tag>& b) {
-  return Quantity<Units, Ratio, BaseType, Tag>{a.underlying_value() * b};
+  return false;
+  // return Quantity<Units, Ratio, BaseType, Tag>{a.underlying_value() * b};
 }
-
-
-
