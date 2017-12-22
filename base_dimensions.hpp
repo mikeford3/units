@@ -3,24 +3,39 @@
 #include <ratio>
 
 namespace si {
-  template <intmax_t n = 1, intmax_t d = 1>
-  struct BaseUnit {
+    namespace Impl {
+          template <class Arg>
+  constexpr std::false_type is_ratio(Arg) {
+    return std::false_type{};
+  }
+
+  template <intmax_t N, intmax_t D>
+  constexpr std::true_type is_ratio(std::ratio<N, D>) {
+    return std::true_type{};
+  }
+  
+ template <intmax_t n = 1, intmax_t d = 1, class ratio=si::unity>
+  struct BaseUnit{
     constexpr static auto exp = std::ratio<n, d>{};
+    constexpr static auto prefix = ratio;
+    static_assert(is_ratio(ratio));
   };
+    
+    
 #define MAKE_BASE_UNIT(NAME, ABBREVIATION)                                     \
-  template <intmax_t n = 1, intmax_t d = 1>                                    \
-  struct NAME : BaseUnit<n, d> {                                               \
+  template <intmax_t n = 1, intmax_t d = 1, class ratio=si::unity>                                    \
+  struct NAME : BaseUnit<n, d,ratio> {                                               \
     using BaseUnit<n, d>::BaseUnit;                                            \
   };                                                                           \
   template <class Arg>                                                         \
   constexpr auto is_##NAME(Arg) {                                              \
     return std::false_type{};                                                  \
   }                                                                            \
-  template <intmax_t n, intmax_t d>                                            \
-  constexpr auto is_##NAME(NAME<n, d>) {                                       \
+  template <intmax_t n, intmax_t d, template<intmax_t, intmax_t> class ratio>                                            \
+  constexpr auto is_##NAME(NAME<n, d, ratio>) {                                       \
     return std::true_type{};                                                   \
   }                                                                            \
-  template <intmax_t n = 1, intmax_t d = 1>                                    \
+  template <intmax_t n = 1, intmax_t d = 1, class Ratio=si::unity>                                    \
   using ABBREVIATION = NAME<n, d>;
 
   MAKE_BASE_UNIT(length, L)
@@ -30,14 +45,17 @@ namespace si {
   MAKE_BASE_UNIT(amount, N)
   MAKE_BASE_UNIT(current, I)
   MAKE_BASE_UNIT(temperature, Te)
+  
+
 
   static_assert(is_length(length<1>{}));
   static_assert(is_length(length{}));
   static_assert(is_length(length<-1, 2>{}));
+  static_assert(is_length(length<-1, 2, si::kilo>{}));
 
   static_assert(is_length(L<1>{}));
   static_assert(is_mass(mass<1>{}));
-  static_assert(is_mass(M<1>{}));
+  static_assert(is_mass(M<1,2,si::kilo>{}));
   static_assert(!is_mass(length<1>{}));
   static_assert(!is_mass(L<1>{}));
 
@@ -68,5 +86,6 @@ namespace si {
   static_assert(is_base_dimension<amount<1>>());
   static_assert(is_base_dimension<current<1>>());
   static_assert(is_base_dimension<temperature<1>>());
+    static_assert(is_base_dimension<temperature<1,2,si::mega>>());
   static_assert(!is_base_dimension<std::integral_constant<int, 1>>());
 } // namespace si

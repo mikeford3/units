@@ -6,15 +6,7 @@
 #include <type_traits>
 
 namespace si {
-  template <class Arg>
-  constexpr std::false_type is_ratio(Arg) {
-    return std::false_type{};
-  }
 
-  template <intmax_t N, intmax_t D>
-  constexpr std::true_type is_ratio(std::ratio<N, D>) {
-    return std::true_type{};
-  }
   /** Compile time class which holds a std::ratio for each */
   template <class Length, class Mass, class Time, class Current,
             class Temperature, class Amount, class Luminosity>
@@ -26,13 +18,13 @@ namespace si {
     using temperature = Temperature;
     using amount = Amount;
     using luminosity = Luminosity;
-    static_assert(is_ratio(length{}));
-    static_assert(is_ratio(mass{}));
-    static_assert(is_ratio(time{}));
-    static_assert(is_ratio(current{}));
-    static_assert(is_ratio(temperature{}));
-    static_assert(is_ratio(amount{}));
-    static_assert(is_ratio(luminosity{}));
+    static_assert(is_length(length{}));
+    static_assert(is_mass(mass{}));
+    static_assert(is_time(time{}));
+    static_assert(is_current(current{}));
+    static_assert(is_temperature(temperature{}));
+    static_assert(is_amount(amount{}));
+    static_assert(is_luminosity(luminosity{}));
   };
   template <class Arg>
   constexpr std::false_type is_dimensions(Arg) {
@@ -100,14 +92,30 @@ namespace si {
           d *= D;
           return *this;
         }
+        
+        constexpr runtime_ratio& operator*=(const runtime_ratio& other) {
+          n *= other.n;
+          d *= other.d;
+          return *this;
+        }
+        template <intmax_t N, intmax_t D>
+        constexpr runtime_ratio& operator*=(std::ratio<N, D>) {
+          n *= N;
+          d *= D;
+          return *this;
+        }
       };
-      runtime_ratio length{0, 1};
-      runtime_ratio mass{0, 1};
-      runtime_ratio time{0, 1};
-      runtime_ratio current{0, 1};
-      runtime_ratio temperature{0, 1};
-      runtime_ratio amount{0, 1};
-      runtime_ratio luminosity{0, 1};
+      struct runtime_base {
+          runtime_ratio exp{0, 1};
+          runtime_ratio prefix{1,1};
+          constexpr runtime_base& operator+=(const runtime_base& other) {
+              exp += other.exp;
+              prefix *= other.prefix;
+              return *this;
+          }
+      };
+      
+      runtime_base length{}, mass{}, time{}, current{}, temperature{}, amount{}, luminosity{};
       constexpr DimensionCounter& operator+=(const DimensionCounter& other) {
         length += other.length;
         mass += other.mass;
@@ -124,19 +132,26 @@ namespace si {
     constexpr DimensionCounter parse_base_unit(Arg arg) {
       auto count = DimensionCounter{};
       if constexpr (is_length(arg)) {
-        count.length += Arg::exp;
+        count.length.exp    += Arg::exp;
+        count.length.prefix *= Arg::prefix;
       } else if constexpr (is_time(arg)) {
-        count.time += Arg::exp;
+         count.time.exp    += Arg::exp;
+        count.time.prefix *= Arg::prefix;
       } else if constexpr (is_mass(arg)) {
-        count.mass += Arg::exp;
+        count.mass.exp    += Arg::exp;
+        count.mass.prefix *= Arg::prefix;
       } else if constexpr (is_temperature(arg)) {
-        count.temperature += Arg::exp;
+        count.temperature.exp    += Arg::exp;
+        count.temperature.prefix *= Arg::prefix;
       } else if constexpr (is_amount(arg)) {
-        count.amount += Arg::exp;
+        count.amount.exp    += Arg::exp;
+        count.amount.prefix *= Arg::prefix;
       } else if constexpr (is_luminosity(arg)) {
-        count.luminosity += Arg::exp;
+        count.luminosity.exp    += Arg::exp;
+        count.luminosity.prefix *= Arg::prefix;
       } else if constexpr (is_current(arg)) {
-        count.current += Arg::exp;
+        count.current.exp    += Arg::exp;
+        count.current.prefix *= Arg::prefix;
       } else {
         assert(false);
       }
