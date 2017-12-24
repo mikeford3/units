@@ -40,20 +40,20 @@ namespace si {
   is_dimensions(Dimensions<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>) {
     return std::true_type{};
   }
-  /*
-    // Fwd declartion
-    template <class... Args>
-    struct derived;
 
-    template <class Arg>
-    constexpr std::false_type is_derived(Arg) {
-      return std::false_type{};
-    }
+  // Fwd declartion
+  template <class... Args>
+  struct derived;
 
-    template <class... Args>
-    constexpr std::true_type is_derived(derived<Args...>) {
-      return std::true_type{};
-    }*/
+  template <class Arg>
+  constexpr std::false_type is_derived(Arg) {
+    return std::false_type{};
+  }
+
+  template <class... Args>
+  constexpr std::true_type is_derived(derived<Args...>) {
+    return std::true_type{};
+  }
 
   namespace Impl {
 
@@ -225,14 +225,16 @@ namespace si {
   }
 
   template <class... Args>
-  constexpr auto derived() {
-    constexpr auto Units = boost::hana::tuple<Args...>{};
+  struct derived {
+    using type = decltype(parse_units<Args...>());
+    constexpr static auto Units = boost::hana::tuple<Args...>{};
     static_assert(boost::hana::all_of(Units, [](auto arg) {
-      return is_base_dimension(arg) /*|| is_derived(arg)*/ ||
-             is_dimensions(arg);
+      return is_base_dimension(arg) || is_derived(arg) || is_dimensions(arg);
     }));
-    return parse_units<Args...>();
-  }
+  };
+
+  template <class... Args>
+  using derived_t = typename derived<Args...>::type;
   /** Collect a number of dereived or base dimension classes into a single one
    * using the parse_units constexpr function.
    * If passed a Dimensions class will just inherit from it. */

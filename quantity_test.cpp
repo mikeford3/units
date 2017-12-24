@@ -3,7 +3,7 @@
 #include <iostream>
 
 SCENARIO("Create some quantities of physical units") {
-  using metre_l = decltype(si::derived<si::L<1>>());
+  using metre_l = si::derived_t<si::L<1>>;
   GIVEN("a quantity with only a unit type, default otherwise") {
     const double dval = 10.;
     auto quant = Quantity<metre_l>{dval};
@@ -12,10 +12,9 @@ SCENARIO("Create some quantities of physical units") {
       auto quant_sq = quant * quant;
       THEN("the units must have changed") {
         // std::cout << quant;
-        std::cout << quant_sq;
-        static_assert(
-            std::is_same_v<Quantity<decltype(si::derived<si::Length<2>>())>,
-                           decltype(quant_sq)>);
+        std::cout << "\n" << quant_sq;
+        static_assert(std::is_same_v<Quantity<si::derived_t<si::Length<2>>>,
+                                     decltype(quant_sq)>);
       }
     }
     WHEN("operating with floating points") {

@@ -22,6 +22,7 @@ template <class Units, class Ratio = si::unity, class BaseType = double,
           class Tag = std::false_type>
 class Quantity {
   BaseType _val;
+  static_assert(si::is_dimensions(Units{}));
 
 public:
   // normal ctors
