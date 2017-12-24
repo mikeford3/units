@@ -2,7 +2,10 @@
 
 #include "base_dimensions.hpp"
 #include "derived_dimensions.hpp"
+#include "derived_dimensions_printing.hpp"
 #include "prefixes.hpp"
+
+#include <iostream>
 
 template <class Arg>
 constexpr bool valid_summand([[maybe_unused]] Arg arg = Arg{}) {
@@ -56,6 +59,14 @@ public:
   }
 };
 
+template <class Units, class Ratio, class BaseType, class Tag>
+std::ostream& operator<<(std::ostream& os,
+                         const Quantity<Units, Ratio, BaseType, Tag>& q) {
+  auto u = Units{};
+  os << q.underlying_value() << " " << u;
+  return os;
+}
+
 template <class Units, class Ratio0, class Ratio1, class BaseType, class Tag>
 constexpr auto operator+(const Quantity<Units, Ratio0, BaseType, Tag>& a,
                          const Quantity<Units, Ratio1, BaseType, Tag>& b) {
@@ -97,7 +108,7 @@ template <class Units0, class Units1, class Ratio0, class Ratio1,
           class BaseType, class Tag>
 constexpr auto operator*(const Quantity<Units0, Ratio0, BaseType, Tag>& a,
                          const Quantity<Units1, Ratio1, BaseType, Tag>& b) {
-  //using Units = decltype(si::Impl::multiply(Units0{}, Units1{}));
+  // using Units = decltype(si::Impl::multiply(Units0{}, Units1{}));
   using Units = decltype(Units0{} * Units1{});
   if constexpr (std::is_same_v<Ratio0, Ratio1>) {
     return Quantity<Units, Ratio0, BaseType, Tag>{a.underlying_value() *

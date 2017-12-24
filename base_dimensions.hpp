@@ -1,10 +1,13 @@
 #pragma once
+
+#include "prefixes.hpp"
 #include <boost/hana.hpp>
 #include <ratio>
+#include <type_traits>
 
 namespace si {
-    namespace Impl {
-          template <class Arg>
+  // namespace Impl {
+  template <class Arg>
   constexpr std::false_type is_ratio(Arg) {
     return std::false_type{};
   }
@@ -13,50 +16,47 @@ namespace si {
   constexpr std::true_type is_ratio(std::ratio<N, D>) {
     return std::true_type{};
   }
-  
- template <intmax_t n = 1, intmax_t d = 1, class ratio=si::unity>
-  struct BaseUnit{
+
+  template <intmax_t n = 1, intmax_t d = 1, class ratio = si::unity>
+  struct BaseUnit {
     constexpr static auto exp = std::ratio<n, d>{};
-    constexpr static auto prefix = ratio;
-    static_assert(is_ratio(ratio));
+    constexpr static auto prefix = ratio{};
+    static_assert(is_ratio(ratio{}));
   };
-    
-    
-#define MAKE_BASE_UNIT(NAME, ABBREVIATION)                                     \
-  template <intmax_t n = 1, intmax_t d = 1, class ratio=si::unity>                                    \
-  struct NAME : BaseUnit<n, d,ratio> {                                               \
-    using BaseUnit<n, d>::BaseUnit;                                            \
+
+#define MAKE_BASE_UNIT(NAME, ABBREVIATION, LOWER)                              \
+  template <intmax_t n = 1, intmax_t d = 1, class ratio = si::unity>           \
+  struct NAME : BaseUnit<n, d, ratio> {                                        \
+    using BaseUnit<n, d, ratio>::BaseUnit;                                     \
   };                                                                           \
   template <class Arg>                                                         \
-  constexpr auto is_##NAME(Arg) {                                              \
+  constexpr auto is_##LOWER(Arg) {                                             \
     return std::false_type{};                                                  \
   }                                                                            \
-  template <intmax_t n, intmax_t d, template<intmax_t, intmax_t> class ratio>                                            \
-  constexpr auto is_##NAME(NAME<n, d, ratio>) {                                       \
+  template <intmax_t n, intmax_t d, class ratio>                               \
+  constexpr auto is_##LOWER(NAME<n, d, ratio>) {                               \
     return std::true_type{};                                                   \
   }                                                                            \
-  template <intmax_t n = 1, intmax_t d = 1, class Ratio=si::unity>                                    \
+  template <intmax_t n = 1, intmax_t d = 1, class Ratio = si::unity>           \
   using ABBREVIATION = NAME<n, d>;
 
-  MAKE_BASE_UNIT(length, L)
-  MAKE_BASE_UNIT(mass, M)
-  MAKE_BASE_UNIT(time, Ti)
-  MAKE_BASE_UNIT(luminosity, J)
-  MAKE_BASE_UNIT(amount, N)
-  MAKE_BASE_UNIT(current, I)
-  MAKE_BASE_UNIT(temperature, Te)
-  
+  MAKE_BASE_UNIT(Length, L, length)
+  MAKE_BASE_UNIT(Mass, M, mass)
+  MAKE_BASE_UNIT(Time, Ti, time)
+  MAKE_BASE_UNIT(Luminosity, J, luminosity)
+  MAKE_BASE_UNIT(Amount, N, amount)
+  MAKE_BASE_UNIT(Current, I, current)
+  MAKE_BASE_UNIT(Temperature, Te, temperature)
 
-
-  static_assert(is_length(length<1>{}));
-  static_assert(is_length(length{}));
-  static_assert(is_length(length<-1, 2>{}));
-  static_assert(is_length(length<-1, 2, si::kilo>{}));
+  static_assert(is_length(Length<1>{}));
+  static_assert(is_length(Length{}));
+  static_assert(is_length(Length<-1, 2>{}));
+  static_assert(is_length(Length<-1, 2, si::kilo>{}));
 
   static_assert(is_length(L<1>{}));
-  static_assert(is_mass(mass<1>{}));
-  static_assert(is_mass(M<1,2,si::kilo>{}));
-  static_assert(!is_mass(length<1>{}));
+  static_assert(is_mass(Mass<1>{}));
+  static_assert(is_mass(M<1, 2, si::kilo>{}));
+  static_assert(!is_mass(Length<1>{}));
   static_assert(!is_mass(L<1>{}));
 
   template <class Arg>
@@ -70,22 +70,22 @@ namespace si {
     }
   }
 
-  static_assert(is_base_dimension(length{}));
-  static_assert(is_base_dimension(mass{}));
-  static_assert(is_base_dimension(time{}));
-  static_assert(is_base_dimension(luminosity{}));
-  static_assert(is_base_dimension(amount{}));
-  static_assert(is_base_dimension(current{}));
-  static_assert(is_base_dimension(temperature{}));
+  static_assert(is_base_dimension(Length{}));
+  static_assert(is_base_dimension(Mass{}));
+  static_assert(is_base_dimension(Time{}));
+  static_assert(is_base_dimension(Luminosity{}));
+  static_assert(is_base_dimension(Amount{}));
+  static_assert(is_base_dimension(Current{}));
+  static_assert(is_base_dimension(Temperature{}));
   static_assert(!is_base_dimension(std::integral_constant<int, 1>{}));
 
-  static_assert(is_base_dimension<length<1>>());
-  static_assert(is_base_dimension<mass<1>>());
-  static_assert(is_base_dimension<time<1>>());
-  static_assert(is_base_dimension<luminosity<1>>());
-  static_assert(is_base_dimension<amount<1>>());
-  static_assert(is_base_dimension<current<1>>());
-  static_assert(is_base_dimension<temperature<1>>());
-    static_assert(is_base_dimension<temperature<1,2,si::mega>>());
+  static_assert(is_base_dimension<Length<1>>());
+  static_assert(is_base_dimension<Mass<1>>());
+  static_assert(is_base_dimension<Time<1>>());
+  static_assert(is_base_dimension<Luminosity<1>>());
+  static_assert(is_base_dimension<Amount<1>>());
+  static_assert(is_base_dimension<Current<1>>());
+  static_assert(is_base_dimension<Temperature<1>>());
+  static_assert(is_base_dimension<Temperature<1, 2, si::mega>>());
   static_assert(!is_base_dimension<std::integral_constant<int, 1>>());
 } // namespace si

@@ -9,7 +9,7 @@ namespace si {
 
   /** Compile time class which holds a std::ratio for each */
   template <class Length, class Mass, class Time, class Current,
-            class Temperature, class Amount, class Luminosity>
+            class Temperature, class Amount, class Luminosity, class Prefix>
   struct Dimensions {
     using length = Length;
     using mass = Mass;
@@ -18,6 +18,8 @@ namespace si {
     using temperature = Temperature;
     using amount = Amount;
     using luminosity = Luminosity;
+    using prefix = Prefix;
+    /*static_assert(is_base_dimension(length{}));
     static_assert(is_length(length{}));
     static_assert(is_mass(mass{}));
     static_assert(is_time(time{}));
@@ -25,6 +27,7 @@ namespace si {
     static_assert(is_temperature(temperature{}));
     static_assert(is_amount(amount{}));
     static_assert(is_luminosity(luminosity{}));
+    static_assert(is_ratio(prefix{}));*/
   };
   template <class Arg>
   constexpr std::false_type is_dimensions(Arg) {
@@ -32,47 +35,40 @@ namespace si {
   }
 
   template <class Arg0, class Arg1, class Arg2, class Arg3, class Arg4,
-            class Arg5, class Arg6>
+            class Arg5, class Arg6, class Arg7>
   constexpr std::true_type
-  is_dimensions(Dimensions<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>) {
+  is_dimensions(Dimensions<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>) {
     return std::true_type{};
   }
+  /*
+    // Fwd declartion
+    template <class... Args>
+    struct derived;
 
-  // Fwd declartion
-  template <class... Args>
-  struct derived;
+    template <class Arg>
+    constexpr std::false_type is_derived(Arg) {
+      return std::false_type{};
+    }
 
-  template <class Arg>
-  constexpr std::false_type is_derived(Arg) {
-    return std::false_type{};
-  }
-
-  template <class... Args>
-  constexpr std::true_type is_derived(derived<Args...>) {
-    return std::true_type{};
-  }
+    template <class... Args>
+    constexpr std::true_type is_derived(derived<Args...>) {
+      return std::true_type{};
+    }*/
 
   namespace Impl {
 
-    template <template <class, class> class BinOp, class Le0, class M0,
+    template <template <class, class> class BinOpDim,
+              template <class, class> class BinOpPre, class Le0, class M0,
               class Ti0, class C0, class Te0, class A0, class Lu0, class Le1,
-              class M1, class Ti1, class C1, class Te1, class A1, class Lu1>
+              class M1, class Ti1, class C1, class Te1, class A1, class Lu1,
+              class Pr0, class Pr1>
     constexpr auto
-    dimensions_operator(Dimensions<Le0, M0, Ti0, C0, Te0, A0, Lu0>,
-                        Dimensions<Le1, M1, Ti1, C1, Te1, A1, Lu1>) {
-      return Dimensions<BinOp<Le0, Le1>, BinOp<M0, M1>, BinOp<Ti0, Ti1>,
-                        BinOp<C0, C1>, BinOp<Te0, Te1>, BinOp<A0, A1>,
-                        BinOp<Lu0, Lu1>>{};
-    }
-
-    template <class... Args0, class... Args1>
-    constexpr auto multiply(Dimensions<Args0...> a = Dimensions<Args0...>{}, Dimensions<Args1...> b = Dimensions<Args1...>{}) {
-      return dimensions_operator<std::ratio_add>(a, b);
-    }
-
-    template <class... Args0, class... Args1>
-    constexpr auto divide(Dimensions<Args0...> a, Dimensions<Args1...> b) {
-      return dimensions_operator<std::ratio_subtract>(a, b);
+    dimensions_operator(Dimensions<Le0, M0, Ti0, C0, Te0, A0, Lu0, Pr0>,
+                        Dimensions<Le1, M1, Ti1, C1, Te1, A1, Lu1, Pr1>) {
+      return Dimensions<BinOpDim<Le0, Le1>, BinOpDim<M0, M1>,
+                        BinOpDim<Ti0, Ti1>, BinOpDim<C0, C1>,
+                        BinOpDim<Te0, Te1>, BinOpDim<A0, A1>,
+                        BinOpDim<Lu0, Lu1>, BinOpPre<Pr0, Pr1>>{};
     }
 
     struct DimensionCounter {
@@ -92,7 +88,7 @@ namespace si {
           d *= D;
           return *this;
         }
-        
+
         constexpr runtime_ratio& operator*=(const runtime_ratio& other) {
           n *= other.n;
           d *= other.d;
@@ -106,16 +102,17 @@ namespace si {
         }
       };
       struct runtime_base {
-          runtime_ratio exp{0, 1};
-          runtime_ratio prefix{1,1};
-          constexpr runtime_base& operator+=(const runtime_base& other) {
-              exp += other.exp;
-              prefix *= other.prefix;
-              return *this;
-          }
+        runtime_ratio exp{0, 1};
+        runtime_ratio prefix{1, 1};
+        constexpr runtime_base& operator+=(const runtime_base& other) {
+          exp += other.exp;
+          prefix *= other.prefix;
+          return *this;
+        }
       };
-      
-      runtime_base length{}, mass{}, time{}, current{}, temperature{}, amount{}, luminosity{};
+
+      runtime_base length{}, mass{}, time{}, current{}, temperature{}, amount{},
+          luminosity{};
       constexpr DimensionCounter& operator+=(const DimensionCounter& other) {
         length += other.length;
         mass += other.mass;
@@ -132,25 +129,25 @@ namespace si {
     constexpr DimensionCounter parse_base_unit(Arg arg) {
       auto count = DimensionCounter{};
       if constexpr (is_length(arg)) {
-        count.length.exp    += Arg::exp;
+        count.length.exp += Arg::exp;
         count.length.prefix *= Arg::prefix;
       } else if constexpr (is_time(arg)) {
-         count.time.exp    += Arg::exp;
+        count.time.exp += Arg::exp;
         count.time.prefix *= Arg::prefix;
       } else if constexpr (is_mass(arg)) {
-        count.mass.exp    += Arg::exp;
+        count.mass.exp += Arg::exp;
         count.mass.prefix *= Arg::prefix;
       } else if constexpr (is_temperature(arg)) {
-        count.temperature.exp    += Arg::exp;
+        count.temperature.exp += Arg::exp;
         count.temperature.prefix *= Arg::prefix;
       } else if constexpr (is_amount(arg)) {
-        count.amount.exp    += Arg::exp;
+        count.amount.exp += Arg::exp;
         count.amount.prefix *= Arg::prefix;
       } else if constexpr (is_luminosity(arg)) {
-        count.luminosity.exp    += Arg::exp;
+        count.luminosity.exp += Arg::exp;
         count.luminosity.prefix *= Arg::prefix;
       } else if constexpr (is_current(arg)) {
-        count.current.exp    += Arg::exp;
+        count.current.exp += Arg::exp;
         count.current.prefix *= Arg::prefix;
       } else {
         assert(false);
@@ -161,11 +158,7 @@ namespace si {
     template <class Arg>
     constexpr DimensionCounter parse_arg(Arg arg) {
       auto count = DimensionCounter{};
-      if constexpr (si::is_derived(arg)) {
-        boost::hana::for_each(Arg::Units, [&count](auto subarg) {
-          count += Impl::parse_arg(subarg);
-        });
-      } else if constexpr (si::is_base_dimension(arg)) {
+      if constexpr (si::is_base_dimension(arg)) {
         count += parse_base_unit(arg);
       } else {
         // throw std::logic_error("Oops");
@@ -186,7 +179,29 @@ namespace si {
 
       return count;
     }
+    constexpr auto combine_prefixes(DimensionCounter count) {
+      auto prefix = count.length.prefix;
+      prefix *= count.mass.prefix;
+      prefix *= count.time.prefix;
+      prefix *= count.current.prefix;
+      prefix *= count.temperature.prefix;
+      prefix *= count.amount.prefix;
+      prefix *= count.luminosity.prefix;
+      return prefix;
+    }
   } // namespace Impl
+  template <class... Args0, class... Args1>
+  constexpr auto
+  operator*(Dimensions<Args0...> a,   // = Dimensions<Args0...>{},
+            Dimensions<Args1...> b) { //} = Dimensions<Args1...>{}) {
+    return Impl::dimensions_operator<std::ratio_add, std::ratio_multiply>(a, b);
+  }
+
+  template <class... Args0, class... Args1>
+  constexpr auto operator/(Dimensions<Args0...> a, Dimensions<Args1...> b) {
+    return Impl::dimensions_operator<std::ratio_subtract, std::ratio_divide>(a,
+                                                                             b);
+  }
 
   /** Collect a number of derived or base dimension classes into a single one.
    */
@@ -196,38 +211,55 @@ namespace si {
       return Arg0{};
     } else {
       constexpr auto count = Impl::parse_units<Arg0, Args...>();
-      return Dimensions<std::ratio<count.length.n, count.length.d>,
-                        std::ratio<count.mass.n, count.mass.d>,
-                        std::ratio<count.time.n, count.time.d>,
-                        std::ratio<count.current.n, count.current.d>,
-                        std::ratio<count.temperature.n, count.temperature.d>,
-                        std::ratio<count.amount.n, count.amount.d>,
-                        std::ratio<count.luminosity.n, count.luminosity.d>>{};
+      constexpr auto prefix = Impl::combine_prefixes(count);
+      return Dimensions<
+          std::ratio<count.length.exp.n, count.length.exp.d>,
+          std::ratio<count.mass.exp.n, count.mass.exp.d>,
+          std::ratio<count.time.exp.n, count.time.exp.d>,
+          std::ratio<count.current.exp.n, count.current.exp.d>,
+          std::ratio<count.temperature.exp.n, count.temperature.exp.d>,
+          std::ratio<count.amount.exp.n, count.amount.exp.d>,
+          std::ratio<count.luminosity.exp.n, count.luminosity.exp.d>,
+          std::ratio<prefix.n, prefix.d>>{};
     }
+  }
+
+  template <class... Args>
+  constexpr auto derived() {
+    constexpr auto Units = boost::hana::tuple<Args...>{};
+    static_assert(boost::hana::all_of(Units, [](auto arg) {
+      return is_base_dimension(arg) /*|| is_derived(arg)*/ ||
+             is_dimensions(arg);
+    }));
+    return parse_units<Args...>();
   }
   /** Collect a number of dereived or base dimension classes into a single one
    * using the parse_units constexpr function.
    * If passed a Dimensions class will just inherit from it. */
-  template <class... Args>
-  struct derived : decltype(parse_units<Args...>()) {
-    using Base = decltype(parse_units<Args...>());
-    constexpr static auto Units = boost::hana::tuple<Args...>{};
-    static_assert(boost::hana::all_of(Units, [](auto arg) {
-      return is_base_dimension(arg) || is_derived(arg) || is_dimensions(arg);
-    }));
-    // static_assert(is_base_dimension<Args...>);
-    // : public decltype(parse_units<Args...>()) {
-    // template <class... Args1>
-    // constexpr auto multiply(derived<Args1...> other) {
+  /* template <class... Args>
+   struct derived : decltype(parse_units<Args...>()) {
+     using Base = decltype(parse_units<Args...>());
+     constexpr static auto Units = boost::hana::tuple<Args...>{};
+     static_assert(boost::hana::all_of(Units, [](auto arg) {
+       return is_base_dimension(arg) || is_derived(arg) || is_dimensions(arg);
+     }));*/
+  // static_assert(is_base_dimension<Args...>);
+  // : public decltype(parse_units<Args...>()) {
+  // template <class... Args1>
+  // constexpr auto multiply(derived<Args1...> other) {
 
-    //}
-  };
-  template <class... Args0, class... Args1>
-  constexpr auto operator*(derived<Args0...> a, derived<Args1...> b) {
-    change code to only use derived type to construct things, everything else should use Dimensions directly?
-    using new_dimensions = decltype(Impl::multiply<typename derived<Args0...>::Base, typename derived<Args1...>::Base>());;
-    return derived<new_dimensions>{};
-  }
+  //}
+  //};
+  /* template <class... Args0, class... Args1>
+   constexpr auto operator*(derived<Args0...> a, derived<Args1...> b) {
+     change code to only use derived type to construct things,
+         everything else should use Dimensions directly
+         ? using new_dimensions =
+               decltype(Impl::multiply<typename derived<Args0...>::Base,
+                                       typename derived<Args1...>::Base>());
+     ;
+     return derived<new_dimensions>{};
+   }*/
   /*
   // template <template <class... Args0> class Der0,  template <class... Args1>
   // class Der1>
@@ -239,11 +271,11 @@ namespace si {
   }*/
 
   // Deduction guide
-  template <class... Args>
-  derived(Args... args)->derived<Args...>;
+  // template <class... Args>
+  // derived(Args... args)->derived<Args...>;
 
-  static_assert(!is_derived(length<1>{}));
-  static_assert(is_derived(derived<length<1>>{}));
-  static_assert(is_derived(derived<length<1>, mass<1>>{}));
+  // static_assert(!is_derived(length<1>{}));
+  // static_assert(is_derived(derived<length<1>>{}));
+  // static_assert(is_derived(derived<length<1>, mass<1>>{}));
 
 } // namespace si

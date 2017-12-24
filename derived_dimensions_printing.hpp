@@ -98,25 +98,45 @@ namespace si {
     }
   }
 
-  template <class L, class M, class T, class C, class Te, class A, class Lu>
-  std::ostream& operator<<(std::ostream& os,
-                           Dimensions<L, M, T, C, Te, A, Lu>) {
-    using type = Dimensions<L, M, T, C, Te, A, Lu>;
-    if constexpr (type::length::num != 0)
-      os << print_unit(L{}, "m");
-    if constexpr (type::mass::num != 0)
-      os << print_unit(M{}, "kg");
-    if constexpr (type::time::num != 0)
-      os << print_unit(T{}, "s");
-    if constexpr (type::current::num != 0)
-      os << print_unit(C{}, "A");
-    if constexpr (type::temperature::num != 0)
-      os << print_unit(Te{}, "K");
-    if constexpr (type::amount::num != 0)
-      os << print_unit(A{}, "mol");
-    if constexpr (type::luminosity::num != 0)
-      os << print_unit(Lu{}, "cd");
-
-    return os;
-  }
 } // namespace si
+
+template <class L, class M, class T, class C, class Te, class A, class Lu,
+          class Pr>
+std::ostream& operator<<(std::ostream& os,
+                         const si::Dimensions<L, M, T, C, Te, A, Lu, Pr>&) {
+  using namespace si;
+  using type = si::Dimensions<L, M, T, C, Te, A, Lu, Pr>;
+  bool prefixed = true;
+  if constexpr (std::ratio_not_equal_v<typename type::prefix, si::unity>) {
+    if constexpr (std::ratio_equal_v<type::prefix, si::kilo>)
+      os << "k";
+    else if constexpr (std::ratio_equal_v<type::prefix, si::mega>)
+      os << "M";
+    else if constexpr (std::ratio_equal_v<type::prefix, si::giga>)
+      os << "G";
+    else if constexpr (std::ratio_equal_v<type::prefix, si::milli>)
+      os << "m";
+    else if constexpr (std::ratio_equal_v<type::prefix, si::centi>)
+      os << "c";
+    else
+      prefixed = false;
+  }
+  if constexpr (type::length::num != 0)
+    os << print_unit(L{}, "m");
+  if constexpr (type::mass::num != 0)
+    os << print_unit(M{}, "kg");
+  if constexpr (type::time::num != 0)
+    os << print_unit(T{}, "s");
+  if constexpr (type::current::num != 0)
+    os << print_unit(C{}, "A");
+  if constexpr (type::temperature::num != 0)
+    os << print_unit(Te{}, "K");
+  if constexpr (type::amount::num != 0)
+    os << print_unit(A{}, "mol");
+  if constexpr (type::luminosity::num != 0)
+    os << print_unit(Lu{}, "cd");
+  if (!prefixed) {
+    os << type::prefix::num / type::prefix::den;
+  }
+  return os;
+}
