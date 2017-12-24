@@ -18,13 +18,16 @@ constexpr bool valid_summand([[maybe_unused]] Arg arg = Arg{}) {
 /** Takes a derived unit class, maybe change to derived<Args...?>
  *  then optional parameters for the scale, an unterlying type and an option tag
  * to distinguish between Quantities with the same units but different types.*/
-template <class Units, class Ratio = si::unity, class BaseType = double,
-          class Tag = std::false_type>
+template <class Units, class BaseType = double, class Tag = std::false_type>
 class Quantity {
   BaseType _val;
   static_assert(si::is_dimensions(Units{}));
 
 public:
+  using Prefix = Units::prefix;
+  using BaseUnits =
+      std::tuple<Units::Length, Units::Mass, Units::Time, Units::Current,
+                 Units::Temperature, Units::Amount, Units::Luminosity>;
   // normal ctors
   constexpr explicit Quantity(const BaseType& v) : _val(v) {}
   constexpr explicit Quantity(BaseType&& v) : _val(std::move(v)) {}
@@ -60,42 +63,44 @@ public:
   }
 };
 
-template <class Units, class Ratio, class BaseType, class Tag>
+template <class Units, class BaseType, class Tag>
 std::ostream& operator<<(std::ostream& os,
-                         const Quantity<Units, Ratio, BaseType, Tag>& q) {
+                         const Quantity<Units, BaseType, Tag>& q) {
   auto u = Units{};
   os << q.underlying_value() << " " << u;
   return os;
 }
 
-template <class Units, class Ratio0, class Ratio1, class BaseType, class Tag>
-constexpr auto operator+(const Quantity<Units, Ratio0, BaseType, Tag>& a,
-                         const Quantity<Units, Ratio1, BaseType, Tag>& b) {
+template <class Units0, class Units1, class BaseType, class Tag,
+          typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
+constexpr auto operator+(const Quantity<Units0, BaseType, Tag>& a,
+                         const Quantity<Units1, BaseType, Tag>& b) {
   const auto & [ aa, bb ] = rescale(a, b);
   auto tmp{aa};
   return tmp += bb;
 }
 
-template <class Units, class Ratio0, class Ratio1, class BaseType, class Tag>
-constexpr auto operator-(const Quantity<Units, Ratio0, BaseType, Tag>& a,
-                         const Quantity<Units, Ratio1, BaseType, Tag>& b) {
+template <class Units0, class Units1, class BaseType, class Tag,
+          typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
+constexpr auto operator-(const Quantity<Units0, BaseType, Tag>& a,
+                         const Quantity<Units1, BaseType, Tag>& b) {
   const auto & [ aa, bb ] = rescale(a, b);
   auto tmp{aa};
   return tmp -= bb;
 }
 
-template <class Units, class Ratio, class BaseType, class Tag, class Div,
+template <class Units, class BaseType, class Tag, class Div,
           typename = std::enable_if_t<valid_summand(Div{})>>
-constexpr auto operator/(const Quantity<Units, Ratio, BaseType, Tag>& a,
+constexpr auto operator/(const Quantity<Units, BaseType, Tag>& a,
                          const Div& b) {
-  return Quantity<Units, Ratio, BaseType, Tag>{a.underlying_value() / b};
+  return Quantity<Units, BaseType, Tag>{a.underlying_value() / b};
 }
 
-template <class Units, class Ratio, class BaseType, class Tag, class Mult,
+template <class Units, class BaseType, class Tag, class Mult,
           typename = std::enable_if_t<valid_summand(Mult{})>>
-constexpr auto operator*(const Quantity<Units, Ratio, BaseType, Tag>& a,
+constexpr auto operator*(const Quantity<Units, BaseType, Tag>& a,
                          const Mult& b) {
-  return Quantity<Units, Ratio, BaseType, Tag>{a.underlying_value() * b};
+  return Quantity<Units, BaseType, Tag>{a.underlying_value() * b};
 }
 
 template <class Units, class Ratio, class BaseType, class Tag, class Mult,

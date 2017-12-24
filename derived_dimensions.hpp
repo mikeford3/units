@@ -19,16 +19,23 @@ namespace si {
     using amount = Amount;
     using luminosity = Luminosity;
     using prefix = Prefix;
-    /*static_assert(is_base_dimension(length{}));
-    static_assert(is_length(length{}));
-    static_assert(is_mass(mass{}));
-    static_assert(is_time(time{}));
-    static_assert(is_current(current{}));
-    static_assert(is_temperature(temperature{}));
-    static_assert(is_amount(amount{}));
-    static_assert(is_luminosity(luminosity{}));
-    static_assert(is_ratio(prefix{}));*/
   };
+
+  template <class Le0, class M0, class Ti0, class C0, class Te0, class A0,
+            class Lu0, class Le1, class M1, class Ti1, class C1, class Te1,
+            class A1, class Lu1, class Pr0, class Pr1>
+  constexpr auto
+  same_dimension(Dimensions<Le0, M0, Ti0, C0, Te0, A0, Lu0, Pr0>,
+                 Dimensions<Le1, M1, Ti1, C1, Te1, A1, Lu1, Pr1>) {
+    if constexpr (std::ratio_equal_v<Le0, Le1> && std::ratio_equal_v<M0, M1> &&
+                  std::ratio_equal_v<Ti0, Ti1> && std::ratio_equal_v<C0, C1> &&
+                  std::ratio_equal_v<Te0, Te1> && std::ratio_equal_v<A0, A1> &&
+                  std::ratio_equal_v<Lu0, Lu1>) {
+      return std::true_type{};
+    }
+    return std::false_type{};
+  }
+
   template <class Arg>
   constexpr std::false_type is_dimensions(Arg) {
     return std::false_type{};
@@ -223,7 +230,8 @@ namespace si {
           std::ratio<prefix.n, prefix.d>>{};
     }
   }
-
+  /** Convert base dimensions or derived types into a single Dimension class in
+   * its "type" alias.*/
   template <class... Args>
   struct derived {
     using type = decltype(parse_units<Args...>());
@@ -235,49 +243,9 @@ namespace si {
 
   template <class... Args>
   using derived_t = typename derived<Args...>::type;
-  /** Collect a number of dereived or base dimension classes into a single one
-   * using the parse_units constexpr function.
-   * If passed a Dimensions class will just inherit from it. */
-  /* template <class... Args>
-   struct derived : decltype(parse_units<Args...>()) {
-     using Base = decltype(parse_units<Args...>());
-     constexpr static auto Units = boost::hana::tuple<Args...>{};
-     static_assert(boost::hana::all_of(Units, [](auto arg) {
-       return is_base_dimension(arg) || is_derived(arg) || is_dimensions(arg);
-     }));*/
-  // static_assert(is_base_dimension<Args...>);
-  // : public decltype(parse_units<Args...>()) {
-  // template <class... Args1>
-  // constexpr auto multiply(derived<Args1...> other) {
 
-  //}
-  //};
-  /* template <class... Args0, class... Args1>
-   constexpr auto operator*(derived<Args0...> a, derived<Args1...> b) {
-     change code to only use derived type to construct things,
-         everything else should use Dimensions directly
-         ? using new_dimensions =
-               decltype(Impl::multiply<typename derived<Args0...>::Base,
-                                       typename derived<Args1...>::Base>());
-     ;
-     return derived<new_dimensions>{};
-   }*/
-  /*
-  // template <template <class... Args0> class Der0,  template <class... Args1>
-  // class Der1>
-  template <class Derived0, class Derived1,
-            std::enable_if_t<std::is_base_of_v<Derived0, Dimensions> &&
-                             std::is_base_of_v<Derived1, Dimensions>>>
-  constexpr bool operator*(Derived0 a, Derived1 b) {
-    return false;
-  }*/
-
-  // Deduction guide
-  // template <class... Args>
-  // derived(Args... args)->derived<Args...>;
-
-  // static_assert(!is_derived(length<1>{}));
-  // static_assert(is_derived(derived<length<1>>{}));
-  // static_assert(is_derived(derived<length<1>, mass<1>>{}));
+  static_assert(!is_derived(Length<1>{}));
+  static_assert(is_derived(derived<Length<1>>{}));
+  static_assert(is_derived(derived<Length<1>, Mass<1>>{}));
 
 } // namespace si

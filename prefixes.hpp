@@ -7,14 +7,18 @@
 
 namespace hana = boost::hana;
 
-template <class, class, class, class>
+template <class, class, class>
 class Quantity;
 
-template <class Units, class Ratio0, class Ratio1, class BaseType, class Tag>
-constexpr auto rescale(const Quantity<Units, Ratio0, BaseType, Tag>& a,
-                       const Quantity<Units, Ratio1, BaseType, Tag>& b) {
-  using T0 = Quantity<Units, Ratio0, BaseType, Tag>;
-  using T1 = Quantity<Units, Ratio1, BaseType, Tag>;
+template <class Units0, class Units1, class BaseType, class Tag>
+constexpr auto rescale(const Quantity<Units0, BaseType, Tag>& a,
+                       const Quantity<Units1, BaseType, Tag>& b) {
+  static_assert(same_dimension(Units0{}, Units1{}));
+  using T0 = Quantity<Units0, BaseType, Tag>;
+  using T1 = Quantity<Units1, BaseType, Tag>;
+  using Ratio0 = typename Units0::prefix;
+  using Ratio1 = typename Units1::prefix;
+
   if constexpr (std::is_same_v<Ratio0, Ratio1>) {
     return std::tuple<const T0&, const T1&>{a, b};
   } else if constexpr (Ratio0::num == 1 && Ratio0::den == 1) {

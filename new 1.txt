@@ -23,6 +23,8 @@ using kmph = si::quantity<si::derived<si::km, si::hour<-1>>, double,
 metre       length;
 metre<tag1> beam;
 kmph        max_speed;
+si::Length length;
+si::Length<1, 1, si::unity>
 
 si::length       length;
 si::length<tag2> beam;
