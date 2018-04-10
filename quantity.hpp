@@ -5,6 +5,7 @@
 #include "derived_dimensions_printing.hpp"
 #include "prefixes.hpp"
 
+#include <cmath>
 #include <iostream>
 
 template <class Arg>
@@ -68,6 +69,61 @@ std::ostream& operator<<(std::ostream& os,
   os << q.underlying_value() << " " << u;
   return os;
 }
+
+template <class Units0, class Units1, class BaseType, class Tag,
+          typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
+constexpr auto operator==(const Quantity<Units0, BaseType, Tag>& a,
+                          const Quantity<Units1, BaseType, Tag>& b) {
+  const auto & [ aa, bb ] = rescale(a, b);
+  return aa.underlying_value() == bb.underlying_value();
+}
+
+template <class Units0, class Units1, class BaseType, class Tag,
+          typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
+constexpr auto operator!=(const Quantity<Units0, BaseType, Tag>& a,
+                          const Quantity<Units1, BaseType, Tag>& b) {
+  return !(a == b);
+}
+
+template <class Units0, class Units1, class BaseType, class Tag,
+          typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
+constexpr auto operator<(const Quantity<Units0, BaseType, Tag>& a,
+                         const Quantity<Units1, BaseType, Tag>& b) {
+  const auto & [ aa, bb ] = rescale(a, b);
+  return aa.underlying_value() < bb.underlying_value();
+}
+
+template <class Units0, class Units1, class BaseType, class Tag,
+          typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
+constexpr auto operator<=(const Quantity<Units0, BaseType, Tag>& a,
+                          const Quantity<Units1, BaseType, Tag>& b) {
+  const auto & [ aa, bb ] = rescale(a, b);
+  return aa.underlying_value() <= bb.underlying_value();
+}
+
+template <class Units0, class Units1, class BaseType, class Tag,
+          typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
+constexpr auto operator>(const Quantity<Units0, BaseType, Tag>& a,
+                         const Quantity<Units1, BaseType, Tag>& b) {
+  const auto & [ aa, bb ] = rescale(a, b);
+  return aa.underlying_value() > bb.underlying_value();
+}
+
+template <class Units0, class Units1, class BaseType, class Tag,
+          typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
+constexpr auto operator>=(const Quantity<Units0, BaseType, Tag>& a,
+                          const Quantity<Units1, BaseType, Tag>& b) {
+  const auto & [ aa, bb ] = rescale(a, b);
+  return aa.underlying_value() >= bb.underlying_value();
+}
+
+namespace std {
+  template <class Units, class BaseType, class Tag>
+  constexpr Quantity<Units, BaseType, Tag>
+  abs(const Quantity<Units, BaseType, Tag>& a) {
+    return Quantity<Units, BaseType, Tag>{std::abs(a.underlying_value())};
+  }
+} // namespace std
 
 template <class Units0, class Units1, class BaseType, class Tag,
           typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>

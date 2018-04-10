@@ -12,7 +12,7 @@ SCENARIO("Create some quantities of physical units") {
       auto quant_sq = quant * quant;
       THEN("the units must have changed") {
         // std::cout << quant;
-        std::cout << "\n" << quant_sq;
+        std::cout << quant << " * " << quant << " = " << quant_sq << "\n";
         static_assert(std::is_same_v<Quantity<si::derived_t<si::Length<2>>>,
                                      decltype(quant_sq)>);
       }

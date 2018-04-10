@@ -38,7 +38,9 @@ ELSE()
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 
-file(GLOB TEST "strong_typedef_test.cpp" "datetime_test.cpp" "base_dimensions_test.cpp" "prefixes_test.cpp" "derived_dimensions_test.cpp" "quantity_test.cpp")
+file(GLOB TEST "strong_typedef_test.cpp" "base_dimensions_test.cpp" "prefixes_test.cpp" 
+               "derived_dimensions_test.cpp" "quantity_test.cpp" "common_quantities_test.cpp")
+
 
 
 
