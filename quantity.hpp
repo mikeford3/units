@@ -24,10 +24,8 @@ class Quantity {
   static_assert(si::is_dimensions(Units{}));
 
 public:
-  using Prefix = Units::prefix;
-  using BaseUnits =
-      std::tuple<Units::Length, Units::Mass, Units::Time, Units::Current,
-                 Units::Temperature, Units::Amount, Units::Luminosity>;
+  using Prefix = typename Units::prefix;
+  using BaseUnits = typename si::DimensionToBaseDimension<Units>::type;
   // normal ctors
   constexpr explicit Quantity(const BaseType& v) : _val(v) {}
   constexpr explicit Quantity(BaseType&& v) : _val(std::move(v)) {}
@@ -103,36 +101,37 @@ constexpr auto operator*(const Quantity<Units, BaseType, Tag>& a,
   return Quantity<Units, BaseType, Tag>{a.underlying_value() * b};
 }
 
-template <class Units, class Ratio, class BaseType, class Tag, class Mult,
+template <class Units, class BaseType, class Tag, class Mult,
           typename = std::enable_if_t<valid_summand(Mult{})>>
 constexpr auto operator*(const Mult& b,
-                         const Quantity<Units, Ratio, BaseType, Tag>& a) {
-  return Quantity<Units, Ratio, BaseType, Tag>{a.underlying_value() * b};
+                         const Quantity<Units, BaseType, Tag>& a) {
+  return Quantity<Units, BaseType, Tag>{a.underlying_value() * b};
 }
 
-template <class Units0, class Units1, class Ratio0, class Ratio1,
-          class BaseType, class Tag>
-constexpr auto operator*(const Quantity<Units0, Ratio0, BaseType, Tag>& a,
-                         const Quantity<Units1, Ratio1, BaseType, Tag>& b) {
+template <class Units0, class Units1, class BaseType, class Tag>
+constexpr auto operator*(const Quantity<Units0, BaseType, Tag>& a,
+                         const Quantity<Units1, BaseType, Tag>& b) {
   // using Units = decltype(si::Impl::multiply(Units0{}, Units1{}));
   using Units = decltype(Units0{} * Units1{});
+  using Ratio0 = typename Units0::prefix;
+  using Ratio1 = typename Units1::prefix;
   if constexpr (std::is_same_v<Ratio0, Ratio1>) {
-    return Quantity<Units, Ratio0, BaseType, Tag>{a.underlying_value() *
-                                                  b.underlying_value()};
+    return Quantity<Units, BaseType, Tag>{a.underlying_value() *
+                                          b.underlying_value()};
   } else if constexpr (Ratio0::num == 1 && Ratio0::den == 1) {
     using Ratio2 = std::ratio_divide<Ratio0, Ratio1>;
-    return Quantity<Units, Ratio0, BaseType, Tag>{a.underlying_value() *
-                                                  b.underlying_value() *
-                                                  Ratio2::num / Ratio2::den};
+    return Quantity<Units, BaseType, Tag>{a.underlying_value() *
+                                          b.underlying_value() * Ratio2::num /
+                                          Ratio2::den};
   } else if constexpr (Ratio1::num == 1 && Ratio1::den == 1) {
     using Ratio2 = std::ratio_divide<Ratio1, Ratio0>;
-    return Quantity<Units, Ratio1, BaseType, Tag>{a.underlying_value() *
-                                                  b.underlying_value() *
-                                                  Ratio2::num / Ratio2::den};
+    return Quantity<Units, BaseType, Tag>{a.underlying_value() *
+                                          b.underlying_value() * Ratio2::num /
+                                          Ratio2::den};
   } else {
     using Ratio2 = std::ratio_divide<Ratio0, Ratio1>;
-    return Quantity<Units, Ratio0, BaseType, Tag>{a.underlying_value() *
-                                                  b.underlying_value() *
-                                                  Ratio2::num / Ratio2::den};
+    return Quantity<Units, BaseType, Tag>{a.underlying_value() *
+                                          b.underlying_value() * Ratio2::num /
+                                          Ratio2::den};
   }
 }

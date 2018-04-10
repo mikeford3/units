@@ -1,6 +1,7 @@
 #pragma once
 
 #include "derived_dimensions.hpp"
+#include <cmath>
 #include <iostream>
 #include <limits>
 #include <locale>
@@ -106,17 +107,18 @@ std::ostream& operator<<(std::ostream& os,
                          const si::Dimensions<L, M, T, C, Te, A, Lu, Pr>&) {
   using namespace si;
   using type = si::Dimensions<L, M, T, C, Te, A, Lu, Pr>;
+  using prefix = typename type::prefix;
   bool prefixed = true;
-  if constexpr (std::ratio_not_equal_v<typename type::prefix, si::unity>) {
-    if constexpr (std::ratio_equal_v<type::prefix, si::kilo>)
+  if constexpr (std::ratio_not_equal_v<prefix, si::unity>) {
+    if constexpr (std::ratio_equal_v<prefix, si::kilo>)
       os << "k";
-    else if constexpr (std::ratio_equal_v<type::prefix, si::mega>)
+    else if constexpr (std::ratio_equal_v<prefix, si::mega>)
       os << "M";
-    else if constexpr (std::ratio_equal_v<type::prefix, si::giga>)
+    else if constexpr (std::ratio_equal_v<prefix, si::giga>)
       os << "G";
-    else if constexpr (std::ratio_equal_v<type::prefix, si::milli>)
+    else if constexpr (std::ratio_equal_v<prefix, si::milli>)
       os << "m";
-    else if constexpr (std::ratio_equal_v<type::prefix, si::centi>)
+    else if constexpr (std::ratio_equal_v<prefix, si::centi>)
       os << "c";
     else
       prefixed = false;
@@ -136,7 +138,19 @@ std::ostream& operator<<(std::ostream& os,
   if constexpr (type::luminosity::num != 0)
     os << print_unit(Lu{}, "cd");
   if (!prefixed) {
-    os << type::prefix::num / type::prefix::den;
+    if constexpr (type::prefix::num == type::prefix::den) {
+      //nothing, x
+    } else if constexpr (type::prefix::num / type::prefix::den != 0) {
+      constexpr auto pw = std::log10(type::prefix::num / type::prefix::den);
+      constexpr auto intpw = static_cast<int>(pw);
+      if constexpr (std::fabs(pw / intpw - 1.) < 0.001) {
+        os << " x 10" << to_integer_superscript<intpw>();
+      } else {
+        os << " x " << type::prefix::num / type::prefix::den;
+      }
+    } else {
+      os << " x " << static_cast<double>(type::prefix::num) / type::prefix::den;
+    }
   }
   return os;
 }
