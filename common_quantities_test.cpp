@@ -38,11 +38,21 @@ SCENARIO("Common Quantities") {
     WHEN("using MPam^0.5") {
       auto a = Quantity<seconds_t>{100.3};
       auto b = Quantity<kg_t>{1};
-      auto c = Quantity<velocity_t>{20};
+      auto c1 = Quantity<velocity_t1>{20};
+      auto c2 = Quantity<velocity_t2>{20};
+
       auto d = Quantity<acceleration_t>{20};
       auto e = Quantity<N_t>{30};
-      std::cout << e;
       auto f = Quantity<Pa_t>{15};
+      auto g = Quantity<MPam05_t>{20};
+      std::cout << "a = " << a << "\n";
+      std::cout << "b = " << b << "\n";
+      std::cout << "c1 = " << c1 << "\n";
+      std::cout << "c2 = " << c2 << "\n";
+      std::cout << "d = " << d << "\n";
+      std::cout << "e = " << e << "\n";
+      std::cout << "f = " << f << "\n";
+      std::cout << "g = " << g << "\n";
     }
   }
 }

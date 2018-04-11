@@ -158,6 +158,19 @@ namespace si {
         luminosity += other.luminosity;
         return *this;
       }
+      constexpr DimensionCounter() = default;
+
+      template <class Le, class M, class Ti, class C, class Te, class A,
+                class Lu, class Pr>
+      constexpr DimensionCounter(
+          const Dimensions<Le, M, Ti, C, Te, A, Lu, Pr>&)
+          : length{{Le::num, Le::den}, {Pr::num, Pr::den}},
+            mass{{M::num, M::den}, {1, 1}},
+            time{{Ti::num, Ti::den}, {1, 1}},
+            current{{C::num, C::den}, {1, 1}},
+            temperature{{Te::num, Te::den}, {1, 1}},
+            amount{{A::num, A::den}, {1, 1}},
+            luminosity{{Lu::num, Lu::den}, {1, 1}} {}
     };
 
     template <class Arg>
@@ -195,7 +208,10 @@ namespace si {
       auto count = DimensionCounter{};
       if constexpr (si::is_base_dimension(arg)) {
         count += parse_base_unit(arg);
-      } else {
+      } else if constexpr (si::is_dimensions(arg)) {
+        constexpr auto rt = DimensionCounter(arg);
+        count += rt;
+
         // throw std::logic_error("Oops");
         // std::cout << "Oops\n";
         // assert(false);
@@ -242,21 +258,21 @@ namespace si {
    */
   template <class Arg0, class... Args>
   constexpr auto parse_units() {
-    if constexpr (is_dimensions(Arg0{})) {
-      return Arg0{};
-    } else {
-      constexpr auto count = Impl::parse_units<Arg0, Args...>();
-      constexpr auto prefix = Impl::combine_prefixes(count);
-      return Dimensions<
-          std::ratio<count.length.exp.n, count.length.exp.d>,
-          std::ratio<count.mass.exp.n, count.mass.exp.d>,
-          std::ratio<count.time.exp.n, count.time.exp.d>,
-          std::ratio<count.current.exp.n, count.current.exp.d>,
-          std::ratio<count.temperature.exp.n, count.temperature.exp.d>,
-          std::ratio<count.amount.exp.n, count.amount.exp.d>,
-          std::ratio<count.luminosity.exp.n, count.luminosity.exp.d>,
-          std::ratio<prefix.n, prefix.d>>{};
-    }
+    // if constexpr (is_dimensions(Arg0{})) {
+    //  return Arg0{};
+    //} else {
+    constexpr auto count = Impl::parse_units<Arg0, Args...>();
+    constexpr auto prefix = Impl::combine_prefixes(count);
+    return Dimensions<
+        std::ratio<count.length.exp.n, count.length.exp.d>,
+        std::ratio<count.mass.exp.n, count.mass.exp.d>,
+        std::ratio<count.time.exp.n, count.time.exp.d>,
+        std::ratio<count.current.exp.n, count.current.exp.d>,
+        std::ratio<count.temperature.exp.n, count.temperature.exp.d>,
+        std::ratio<count.amount.exp.n, count.amount.exp.d>,
+        std::ratio<count.luminosity.exp.n, count.luminosity.exp.d>,
+        std::ratio<prefix.n, prefix.d>>{};
+    //}
   }
   /** Convert base dimensions or derived types into a single Dimension class in
    * its "type" alias.*/
