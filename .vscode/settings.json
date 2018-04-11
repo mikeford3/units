@@ -64,6 +64,7 @@
         "map": "cpp",
         "set": "cpp",
         "optional": "cpp",
-        "slist": "cpp"
+        "slist": "cpp",
+        "random": "cpp"
     }
 }
