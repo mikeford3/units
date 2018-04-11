@@ -162,8 +162,7 @@ namespace si {
 
       template <class Le, class M, class Ti, class C, class Te, class A,
                 class Lu, class Pr>
-      constexpr DimensionCounter(
-          const Dimensions<Le, M, Ti, C, Te, A, Lu, Pr>&)
+      constexpr DimensionCounter(const Dimensions<Le, M, Ti, C, Te, A, Lu, Pr>&)
           : length{{Le::num, Le::den}, {Pr::num, Pr::den}},
             mass{{M::num, M::den}, {1, 1}},
             time{{Ti::num, Ti::den}, {1, 1}},
@@ -171,6 +170,11 @@ namespace si {
             temperature{{Te::num, Te::den}, {1, 1}},
             amount{{A::num, A::den}, {1, 1}},
             luminosity{{Lu::num, Lu::den}, {1, 1}} {}
+
+      template <intmax_t N, intmax_t D>
+      constexpr auto add_prefix(std::ratio<N, D> r) {
+        luminosity.prefix *= r;
+      }
     };
 
     template <class Arg>
@@ -211,10 +215,11 @@ namespace si {
       } else if constexpr (si::is_dimensions(arg)) {
         constexpr auto rt = DimensionCounter(arg);
         count += rt;
-
         // throw std::logic_error("Oops");
         // std::cout << "Oops\n";
         // assert(false);
+      } else if constexpr (is_ratio(arg)) {
+        count.add_prefix(arg);
       }
       return count;
     }
@@ -281,7 +286,8 @@ namespace si {
     using type = decltype(parse_units<Args...>());
     constexpr static auto Units = boost::hana::tuple<Args...>{};
     static_assert(boost::hana::all_of(Units, [](auto arg) {
-      return is_base_dimension(arg) || is_derived(arg) || is_dimensions(arg);
+      return is_base_dimension(arg) || is_derived(arg) || is_dimensions(arg) ||
+             is_ratio(arg);
     }));
   };
 

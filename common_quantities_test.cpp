@@ -1,5 +1,6 @@
 #include "common_quantities.hpp"
 #include <catch.hpp>
+#include <random>
 
 SCENARIO("Common Quantities") {
   GIVEN("some common length quantities") {
@@ -54,5 +55,28 @@ SCENARIO("Common Quantities") {
       std::cout << "f = " << f << "\n";
       std::cout << "g = " << g << "\n";
     }
+  }
+}
+
+SCENARIO("Profiling the Quantity class", "[Profile]") {
+  GIVEN("a random number generator to defeat the optimiser") {
+    auto gen = std::default_random_engine{};
+    auto dist = std::normal_distribution{};
+    auto tot0 = Quantity<MPam05_t>{0};
+    auto tot1 = 0.;
+    for (auto i = 0; i < 10; ++i) {
+      BENCHMARK("using Quantity") {
+        for (auto i = 0; i < 1000000; ++i) {
+          tot0 += Quantity<MPam05_t>{dist(gen)};
+        }
+      }
+
+      BENCHMARK("using double") {
+        for (auto i = 0; i < 1000000; ++i) {
+          tot1 += dist(gen);
+        }
+      }
+    }
+    std::cout << "\n" << tot0 << "\t" << tot1 << "\n";
   }
 }
