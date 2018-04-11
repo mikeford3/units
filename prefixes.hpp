@@ -22,13 +22,11 @@ constexpr auto rescale(const Quantity<Units0, BaseType, Tag>& a,
   if constexpr (std::is_same_v<Ratio0, Ratio1>) {
     return std::tuple<const T0&, const T1&>{a, b};
   } else if constexpr (Ratio0::num == 1 && Ratio0::den == 1) {
-    using Ratio2 = std::ratio_divide<Ratio0, Ratio1>;
-    return std::tuple<const T0&, T0>{a, T0{b.underlying_value()} * Ratio2::num /
-                                            Ratio2::den};
+    return std::tuple<const T0&, T0>{a, T0{b.underlying_value()} * Ratio1::num /
+                                            Ratio0::den};
   } else if constexpr (Ratio1::num == 1 && Ratio1::den == 1) {
-    using Ratio2 = std::ratio_divide<Ratio1, Ratio0>;
     return std::tuple<T1, const T1&>{
-        T1{a.underlying_value()} * Ratio2::num / Ratio2::den, b};
+        T1{a.underlying_value()} * Ratio0::num / Ratio0::den, b};
   } else {
     using Ratio2 = std::ratio_divide<Ratio0, Ratio1>;
     return std::tuple<const T0&, T0>{a, T0{b.underlying_value()} * Ratio2::num /

@@ -263,9 +263,6 @@ namespace si {
    */
   template <class Arg0, class... Args>
   constexpr auto parse_units() {
-    // if constexpr (is_dimensions(Arg0{})) {
-    //  return Arg0{};
-    //} else {
     constexpr auto count = Impl::parse_units<Arg0, Args...>();
     constexpr auto prefix = Impl::combine_prefixes(count);
     return Dimensions<
@@ -277,7 +274,20 @@ namespace si {
         std::ratio<count.amount.exp.n, count.amount.exp.d>,
         std::ratio<count.luminosity.exp.n, count.luminosity.exp.d>,
         std::ratio<prefix.n, prefix.d>>{};
-    //}
+  }
+
+  template <class Arg0, class... Args>
+  constexpr auto parse_units_unity_prefix() {
+    constexpr auto count = Impl::parse_units<Arg0, Args...>();
+    return Dimensions<
+        std::ratio<count.length.exp.n, count.length.exp.d>,
+        std::ratio<count.mass.exp.n, count.mass.exp.d>,
+        std::ratio<count.time.exp.n, count.time.exp.d>,
+        std::ratio<count.current.exp.n, count.current.exp.d>,
+        std::ratio<count.temperature.exp.n, count.temperature.exp.d>,
+        std::ratio<count.amount.exp.n, count.amount.exp.d>,
+        std::ratio<count.luminosity.exp.n, count.luminosity.exp.d>,
+        std::ratio<1, 1>>{};
   }
   /** Convert base dimensions or derived types into a single Dimension class in
    * its "type" alias.*/
@@ -292,7 +302,20 @@ namespace si {
   };
 
   template <class... Args>
+  struct derived_unity {
+    using type = decltype(parse_units_unity_prefix<Args...>());
+    constexpr static auto Units = boost::hana::tuple<Args...>{};
+    static_assert(boost::hana::all_of(Units, [](auto arg) {
+      return is_base_dimension(arg) || is_derived(arg) || is_dimensions(arg) ||
+             is_ratio(arg);
+    }));
+  };
+
+  template <class... Args>
   using derived_t = typename derived<Args...>::type;
+
+  template <class... Args>
+  using derived_unity_t = typename derived_unity<Args...>::type;
 
   static_assert(!is_derived(Length<1>{}));
   static_assert(is_derived(derived<Length<1>>{}));

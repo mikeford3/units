@@ -164,13 +164,21 @@ constexpr auto operator*(const Mult& b,
   return Quantity<Units, BaseType, Tag>{a.underlying_value() * b};
 }
 
+//convert types bases dimensions to their multiple, then return 
+//a variable with a prefix of unity
+// e.g. 1 km * 2 km  ->  1,000 * 2,000 m^2 
 template <class Units0, class Units1, class BaseType, class Tag>
 constexpr auto operator*(const Quantity<Units0, BaseType, Tag>& a,
                          const Quantity<Units1, BaseType, Tag>& b) {
-  // using Units = decltype(si::Impl::multiply(Units0{}, Units1{}));
-  using Units = decltype(Units0{} * Units1{});
+                           
+  using Units = si::derived_unity_t<decltype(Units0{} * Units1{})>;
   using Ratio0 = typename Units0::prefix;
   using Ratio1 = typename Units1::prefix;
+  auto a_val = a.underlying_value() * Ratio0::num / Ratio0::den;
+  auto b_val = b.underlying_value() * Ratio1::num / Ratio1::den;
+  return Quantity<Units, BaseType, Tag>{a_val * b_val};
+  /*
+
   if constexpr (std::is_same_v<Ratio0, Ratio1>) {
     return Quantity<Units, BaseType, Tag>{a.underlying_value() *
                                           b.underlying_value()};
@@ -189,5 +197,5 @@ constexpr auto operator*(const Quantity<Units0, BaseType, Tag>& a,
     return Quantity<Units, BaseType, Tag>{a.underlying_value() *
                                           b.underlying_value() * Ratio2::num /
                                           Ratio2::den};
-  }
+  }*/
 }
