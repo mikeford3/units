@@ -54,14 +54,87 @@ SCENARIO("Common Quantities") {
       using m2 = Quantity<si::derived_t<si::Length<2>>>;
       using m = metre;
       using mm = Quantity<si::derived_t<si::Length<1>, si::milli>>;
-      WHEN("using comparisons") {
+      using dimensionless = Quantity<si::derived_t<si::unity>>;
+      WHEN("comparing lengths") {
         THEN("2 m < 2 km") { REQUIRE(m{2} < km{2}); }
         THEN("2 mm < 2 m") { REQUIRE(mm{2} < m{2}); }
         THEN("2 m > -2 km") { REQUIRE(m{2} > km{-2}); }
+        THEN("2000 m >= 2 km") { REQUIRE(m{2000} >= km{2}); }
+        THEN("2 km >= 2000 km") { REQUIRE(km{2} >= m{2000}); }
+        THEN("2 km > 2 mm") { REQUIRE(km{2} > mm{2}); }
+        THEN("2 km => 2 mm") { REQUIRE(km{2} >= mm{2}); }
+        THEN("2 mm < 2 km") { REQUIRE(mm{2} < km{2}); }
+        THEN("2 mm <= 2 km") { REQUIRE(mm{2} <= km{2}); }
         THEN("4,000,023 m == 4,000.023 km") {
           REQUIRE(abs(m{4'000'023} - m{4'000'023} <= m{1}));
           REQUIRE(abs(m{4'000'023} - km{4'000.023} <= m{1}));
+          REQUIRE(abs(mm{1'000'050} - km{1.000'050} <= mm{0.1}));
         }
+      }
+
+      WHEN("adding and subtracting lengths") {
+        WHEN(" using + ") {
+          THEN("2 m + 2 m == 4 m") { REQUIRE(m{2} + m{2} == m{4}); }
+          THEN("2 km + 2 m == 2,002 m") { REQUIRE(km{2} + m{2} == m{2'002}); }
+          THEN("2 m + 2 km == 2,002 m") { REQUIRE(m{2} + km{2} == m{2'002}); }
+          THEN("2 km + 2 m == 2.002 km") {
+            REQUIRE(abs((km{2} + m{2}) - km{2.002}) <= m{0.001});
+          }
+          THEN("2 m + 2 km == 2.002 km") {
+            REQUIRE(abs((m{2} + km{2}) - km{2.002}) <= m{0.001});
+          }
+        }
+        WHEN(" using - ") {
+          THEN("2 m - 1 m == 1 m") { REQUIRE(m{2} - m{1} == m{1}); }
+          THEN("2 km - 2 m == 1,998 m") { REQUIRE(km{2} - m{2} == m{1'998}); }
+          THEN("2 m - 2 km == -1'998 m") { REQUIRE(m{2} - km{2} == m{-1'998}); }
+          THEN("2 km - 2 m == 1.998 km") {
+            REQUIRE(abs((km{2} - m{2}) - km{1.998}) <= m{0.001});
+          }
+          THEN("2 m - 2 km == -1.998 km") {
+            REQUIRE(abs((m{2} - km{2}) - km{-1.998}) <= m{0.001});
+          }
+        }
+
+        WHEN(" using += ") {
+          auto _2m = m{2};
+          auto _2km = km{2};
+          THEN("2 m += 2 m == 4 m") { REQUIRE((_2m += m{2}) == m{4}); }
+          THEN("2 km += 2 m == 2,002 m") {
+            REQUIRE(abs((_2km += m{2}) - m{2'002}) <= m{0.001});
+          }
+          THEN("2 m += 2 km == 2,002 m") {
+            REQUIRE((_2m += km{2}) == m{2'002});
+          }
+          THEN("2 km += 2 m == 2.002 km") {
+            REQUIRE(abs(_2km += m{2} - km{2.002}) <= m{0.001});
+          }
+          THEN("2 m += 2 km == 2.002 km") {
+            REQUIRE(abs((_2m += km{2}) - km{2.002}) <= m{0.001});
+          }
+        }
+
+        WHEN(" using -= ") {
+          auto _2m = m{2};
+          auto _2km = km{2};
+          THEN("2 m -= 2 m == 4 m") { REQUIRE((_2m -= m{2}) == m{0}); }
+          THEN("2 km -= 2 m == 1,998 m") {
+            REQUIRE(abs((_2km -= m{2}) - m{1'998}) <= m{0.001});
+          }
+          THEN("2 m -= 2 km == -1,998 m") {
+            REQUIRE((_2m -= km{2}) == m{-1'998});
+          }
+          THEN("2 km -= 2 m == 1.998 km") {
+            REQUIRE(abs((_2km -= m{2}) - km{1.998}) <= m{0.001});
+          }
+          THEN("2 m -= 2 km == -1.998 km") {
+            REQUIRE(abs((_2m -= km{2}) - km{-1.998}) <= m{0.001});
+          }
+        }
+      }
+
+      WHEN("dividing lengths by lengths") {
+        THEN("2 m / 2 m == 1") { REQUIRE(m{2} / m{2} == dimensionless{1.}); }
       }
 
       /*WHEN("using multiply") {

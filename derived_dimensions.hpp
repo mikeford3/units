@@ -76,6 +76,19 @@ namespace si {
     return std::true_type{};
   }
 
+  template <class Arg0, class Arg1, class Arg2, class Arg3, class Arg4,
+            class Arg5, class Arg6, class Prefix>
+  constexpr auto is_dimensionless(
+      Dimensions<Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Prefix>) {
+    if constexpr (Arg0::num == 0 && Arg1::num == 0 && Arg2::num == 0 &&
+                  Arg3::num == 0 && Arg4::num == 0 && Arg5::num == 0 &&
+                  Arg6::num == 0) {
+      return std::true_type{};
+    } else {
+      return std::false_type{};
+    }
+  }
+
   // Fwd declartion
   template <class... Args>
   struct derived;
@@ -275,6 +288,9 @@ namespace si {
         std::ratio<count.luminosity.exp.n, count.luminosity.exp.d>,
         std::ratio<prefix.n, prefix.d>>{};
   }
+  /*constexpr auto parse_units() {
+    return Dimensions{};
+  }*/
 
   template <class Arg0, class... Args>
   constexpr auto parse_units_unity_prefix() {

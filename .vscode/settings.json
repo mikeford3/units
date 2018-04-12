@@ -65,6 +65,7 @@
         "set": "cpp",
         "optional": "cpp",
         "slist": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "queue": "cpp"
     }
 }

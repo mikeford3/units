@@ -105,6 +105,16 @@ SCENARIO("Derived") {
       std::cout << a << " / " << b << " = " << c << "\n";
     }
   }
+
+  GIVEN("what should be dimensionless units") {
+    using dimless0 = si::derived_t<si::unity>;
+    using dimless1 = si::derived_t<si::kilo>;
+    using dimensioned = si::derived_t<si::Length<1>>;
+    
+    static_assert(is_dimensionless(dimless0{}));
+    static_assert(is_dimensionless(dimless1{}));
+    static_assert(!is_dimensionless(dimensioned{}));
+  }
 }
 /*
 struct SomeDimensions {
