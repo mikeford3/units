@@ -241,10 +241,8 @@ WHEN("multiplying and dividing by dimensionless quantities") {
         REQUIRE((m{2} /= two) == m{1});
       }
       THEN("2m /= two_million = 4,000,000m") {
-        REQUIRE(m{1} == km{1 / 1000.});
-        REQUIRE(m{1e-6} == km{1e-9});
         REQUIRE((m{2} /= two_million) == m{1e-6});
-        REQUIRE((m{2} /= two_million) == km{1e-9});        
+        REQUIRE(abs((m{2} /= two_million) - km{1e-9}) <= m{1e-20});        
       }
 }
       /*WHEN("using multiply") {
