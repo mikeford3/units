@@ -66,6 +66,12 @@
         "optional": "cpp",
         "slist": "cpp",
         "random": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "xlocale": "cpp",
+        "xmemory0": "cpp",
+        "xstddef": "cpp",
+        "xtr1common": "cpp",
+        "xutility": "cpp",
+        "xstring": "cpp"
     }
 }

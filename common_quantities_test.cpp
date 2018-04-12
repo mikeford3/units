@@ -134,9 +134,119 @@ SCENARIO("Common Quantities") {
       }
 
       WHEN("dividing lengths by lengths") {
-        THEN("2 m / 2 m == 1") { REQUIRE(m{2} / m{2} == dimensionless{1.}); }
+        WHEN("comparing to dimensionless quantities") {
+        THEN("2 m / 2 m == 1 is true") { REQUIRE(m{2} / m{2} == dimensionless{1.}); }
+        THEN("2 m / 2 m >= 1 is true") { REQUIRE(m{2} / m{2} >= dimensionless{1.}); }
+        THEN("2 m / 2 m <= 1 is true") { REQUIRE(m{2} / m{2} <= dimensionless{1.}); }
+        THEN("2 m / 2 m != 1 is false") { REQUIRE_FALSE(m{2} / m{2} != dimensionless{1.}); }
+        THEN("2 m / 2 m >  1 is false") { REQUIRE_FALSE(m{2} / m{2} > dimensionless{1.}); }
+        THEN("2 m / 2 m <  1 is false") { REQUIRE_FALSE(m{2} / m{2} < dimensionless{1.}); }
+
+        THEN("3 m / 2 m >= 1 is true") { REQUIRE(m{3} / m{2} >= dimensionless{1.}); }
+        THEN("3 m / 2 m >  1 is true") { REQUIRE(m{3} / m{2} > dimensionless{1.}); }
+        THEN("3 m / 2 m != 1 is true") { REQUIRE(m{3} / m{2} != dimensionless{1.}); }
+        THEN("3 m / 2 m <  1 is false") { REQUIRE_FALSE(m{3} / m{2} < dimensionless{1.}); }
+        THEN("3 m / 2 m <= 1 is false") { REQUIRE_FALSE(m{3} / m{2} <= dimensionless{1.}); }
+        THEN("3 m / 2 m == 1 is false") { REQUIRE_FALSE(m{3} / m{2} == dimensionless{1.}); }
+
+
+        THEN("2 m / 3 m != 1 is true") { REQUIRE(m{2} / m{3} != dimensionless{1.}); }
+        THEN("2 m / 3 m <  1 is true") { REQUIRE(m{2} / m{3} < dimensionless{1.}); }
+        THEN("2 m / 3 m <= 1 is true") { REQUIRE(m{2} / m{3} <= dimensionless{1.}); }
+        THEN("2 m / 3 m == 1 is false") { REQUIRE_FALSE(m{2} / m{3} == dimensionless{1.}); }
+        THEN("2 m / 3 m >= 1 is false") { REQUIRE_FALSE(m{2} / m{3} >= dimensionless{1.}); }
+        THEN("2 m / 3 m >  1 is false") { REQUIRE_FALSE(m{2} / m{3} > dimensionless{1.}); }
+        }
+
+                WHEN("comparing to integers") {
+        THEN("2 m / 2 m == 1 is true") { REQUIRE(m{2} / m{2} == 1); }
+        THEN("2 m / 2 m >= 1 is true") { REQUIRE(m{2} / m{2} >= 1); }
+        THEN("2 m / 2 m <= 1 is true") { REQUIRE(m{2} / m{2} <= 1); }
+        THEN("2 m / 2 m != 1 is false") { REQUIRE_FALSE(m{2} / m{2} != 1); }
+        THEN("2 m / 2 m >  1 is false") { REQUIRE_FALSE(m{2} / m{2} > 1); }
+        THEN("2 m / 2 m <  1 is false") { REQUIRE_FALSE(m{2} / m{2} < 1); }
+
+        THEN("3 m / 2 m >= 1 is true") { REQUIRE(m{3} / m{2} >= 1); }
+        THEN("3 m / 2 m >  1 is true") { REQUIRE(m{3} / m{2} > 1); }
+        THEN("3 m / 2 m != 1 is true") { REQUIRE(m{3} / m{2} != 1); }
+        THEN("3 m / 2 m <  1 is false") { REQUIRE_FALSE(m{3} / m{2} < 1); }
+        THEN("3 m / 2 m <= 1 is false") { REQUIRE_FALSE(m{3} / m{2} <= 1); }
+        THEN("3 m / 2 m == 1 is false") { REQUIRE_FALSE(m{3} / m{2} == 1); }
+
+
+        THEN("2 m / 3 m != 1 is true") { REQUIRE(m{2} / m{3} != 1); }
+        THEN("2 m / 3 m <  1 is true") { REQUIRE(m{2} / m{3} < 1); }
+        THEN("2 m / 3 m <= 1 is true") { REQUIRE(m{2} / m{3} <= 1); }
+        THEN("2 m / 3 m == 1 is false") { REQUIRE_FALSE(m{2} / m{3} == 1); }
+        THEN("2 m / 3 m >= 1 is false") { REQUIRE_FALSE(m{2} / m{3} >= 1); }
+        THEN("2 m / 3 m >  1 is false") { REQUIRE_FALSE(m{2} / m{3} > 1); }
+        }
+
+        WHEN("comparing to doubles") {
+        THEN("2 m / 2 m == 1 is true") { REQUIRE(m{2} / m{2} == 1.); }
+        THEN("2 m / 2 m >= 1 is true") { REQUIRE(m{2} / m{2} >= 1.); }
+        THEN("2 m / 2 m <= 1 is true") { REQUIRE(m{2} / m{2} <= 1.); }
+        THEN("2 m / 2 m != 1 is false") { REQUIRE_FALSE(m{2} / m{2} != 1.); }
+        THEN("2 m / 2 m >  1 is false") { REQUIRE_FALSE(m{2} / m{2} > 1.); }
+        THEN("2 m / 2 m <  1 is false") { REQUIRE_FALSE(m{2} / m{2} < 1.); }
+
+        THEN("3 m / 2 m >= 1 is true") { REQUIRE(m{3} / m{2} >= 1.); }
+        THEN("3 m / 2 m >  1 is true") { REQUIRE(m{3} / m{2} > 1.); }
+        THEN("3 m / 2 m != 1 is true") { REQUIRE(m{3} / m{2} != 1.); }
+        THEN("3 m / 2 m <  1 is false") { REQUIRE_FALSE(m{3} / m{2} < 1.); }
+        THEN("3 m / 2 m <= 1 is false") { REQUIRE_FALSE(m{3} / m{2} <= 1.); }
+        THEN("3 m / 2 m == 1 is false") { REQUIRE_FALSE(m{3} / m{2} == 1.); }
+
+
+        THEN("2 m / 3 m != 1 is true") { REQUIRE(m{2} / m{3} != 1.); }
+        THEN("2 m / 3 m <  1 is true") { REQUIRE(m{2} / m{3} < 1.); }
+        THEN("2 m / 3 m <= 1 is true") { REQUIRE(m{2} / m{3} <= 1.); }
+        THEN("2 m / 3 m == 1 is false") { REQUIRE_FALSE(m{2} / m{3} == 1.); }
+        THEN("2 m / 3 m >= 1 is false") { REQUIRE_FALSE(m{2} / m{3} >= 1.); }
+        THEN("2 m / 3 m >  1 is false") { REQUIRE_FALSE(m{2} / m{3} > 1.); }
+        
+        }        
+      }
+WHEN("multiplying and dividing by dimensionless quantities") {
+      auto two = dimensionless{2};
+      auto two_million = Quantity<si::derived_t<si::mega>>{2};
+      
+      THEN("2m *= 2m / 2m = 2m") {
+        REQUIRE((m{2} *= m{2} / m{2}) == m{2});
+      }
+      THEN("2m *= 4m / 2m = 2m") {
+        REQUIRE((m{2} *= m{4} / m{2}) == m{4});
       }
 
+      THEN("2m *= two = 4m") {
+        REQUIRE((m{2} *= two) == m{4});
+      }
+      THEN("2m *= two_million = 4,000,000m") {
+        REQUIRE((m{2} *= two_million) == m{4'000'000});
+        REQUIRE((m{2} *= two_million) == km{4'000});        
+      }
+
+      THEN("2m /= 2m / 2m = 2m") {
+        REQUIRE((m{2} /= m{2} / m{2}) == m{2});
+      }
+      THEN("2m /= (4m / 2m) = 1m") {
+        REQUIRE((m{2} /= (m{4} / m{2})) == m{1});
+      }
+
+            THEN("2m /= (2m / 4m) = 1m") {
+        REQUIRE((m{2} /= (m{2} / m{4})) == m{4});
+      }
+
+      THEN("2m /= two = 4m") {
+        REQUIRE((m{2} /= two) == m{1});
+      }
+      THEN("2m /= two_million = 4,000,000m") {
+        REQUIRE(m{1} == km{1 / 1000.});
+        REQUIRE(m{1e-6} == km{1e-9});
+        REQUIRE((m{2} /= two_million) == m{1e-6});
+        REQUIRE((m{2} /= two_million) == km{1e-9});        
+      }
+}
       /*WHEN("using multiply") {
 
         THEN("2 m * 2 m = 4 m^2") { REQUIRE(m{2} * m{2} == m2{4}); }

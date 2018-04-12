@@ -25,13 +25,20 @@ constexpr bool valid_summand([[maybe_unused]] Arg arg = Arg{}) {
  * distinguished.
  *
  * Only adds or substracts when Units and Tag are the same.
+ * 
+ * Can be divided and multiplied by floats and integers to scale it.
+ * 
  * Returns the correct type for multiplications and divisions with other
- * Quantities.
- * Can be divided and multiplied by floats and integers
+ * Quantities, which are defined as free functions. The operators *= and
+ * /= are only defined for floats, doubles and dimensionless Quantities to 
+ * allow for scaling, they make no sense for other quantities, (what is 
+ * 1 metre /= 2 kg)?
+ *  
  * If dimensionless it can be compared to floats and intergers to allow
  * comparisons of ratios, for example:
  *  Quantity<A, B, C> / Quantity<A, B, C> returns a dimensionless Quantity,
- * which can then be compared to floats and integers.
+ * which can then be compared to floats and integers. These are defeined as 
+ * free functions. 
  */
 
 template <class Units, class BaseType = double, class Tag = std::false_type>
@@ -51,6 +58,7 @@ public:
 
   constexpr const BaseType& underlying_value() const noexcept { return _val; }
   constexpr BaseType& underlying_value() noexcept { return _val; }
+
 
   /// Returns a copy of _val, converted to a prefix of 1, so if the units of
   /// this type are km and the _val is 1, then this returns 1000 (in m)
@@ -87,6 +95,24 @@ public:
     _val *= d;
     return *this;
   }
+
+      template <class Units1, typename = std::enable_if_t<is_dimensionless(Units1{}) >>
+  Quantity& operator/=(const Quantity<Units1, BaseType, Tag>&  d) {
+    using Ratio1 = typename Units1::prefix;
+    using Ratio2 = std::ratio_divide<Ratio1, Prefix>;
+    _val /= (d.underlying_value() * Ratio2::num / Ratio2::den);
+    return *this;
+  }
+
+    template <class Units1, typename = std::enable_if_t<is_dimensionless(Units1{}) >>
+  Quantity& operator*=(const Quantity<Units1, BaseType, Tag>&  d) {
+    using Ratio1 = typename Units1::prefix;
+    using Ratio2 = std::ratio_divide<Ratio1, Prefix>;
+    _val *= d.underlying_value() * Ratio2::num / Ratio2::den;
+    return *this;
+  }
+
+  
 };
 
 // ************************************************************************* /
@@ -173,6 +199,7 @@ constexpr auto operator>=(const Quantity<Units0, BaseType, Tag>& a,
 //    Addition and subtraction operators                                     /
 // ************************************************************************* /
 
+/// Addition
 template <class Units0, class Units1, class BaseType, class Tag,
           typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
 constexpr auto operator+(const Quantity<Units0, BaseType, Tag>& a,
@@ -182,6 +209,7 @@ constexpr auto operator+(const Quantity<Units0, BaseType, Tag>& a,
   return tmp += bb;
 }
 
+/// Subtraction
 template <class Units0, class Units1, class BaseType, class Tag,
           typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
 constexpr auto operator-(const Quantity<Units0, BaseType, Tag>& a,
@@ -195,6 +223,9 @@ constexpr auto operator-(const Quantity<Units0, BaseType, Tag>& a,
 //    Division and multiplication operators                                  /
 // ************************************************************************* /
 
+/// Division, creates a new Quantity Type with the correct dimensions and a 
+/// prefix of unity (1). For example:
+/// 
 template <class Units0, class Units1, class BaseType, class Tag>
 constexpr auto operator/(const Quantity<Units0, BaseType, Tag>& a,
                          const Quantity<Units1, BaseType, Tag>& b) {
@@ -282,7 +313,7 @@ template <class Units, class BaseType, class Tag, class Rhs,
           typename = std::enable_if_t<is_dimensionless(Units{})>>
 constexpr bool operator==(const Quantity<Units, BaseType, Tag>& a,
                           const Rhs& comp) {
-  return a.underlying_value_no_prefix() <= comp;
+  return a.underlying_value_no_prefix() == comp;
 }
 
 template <class Units, class BaseType, class Tag, class Rhs,
