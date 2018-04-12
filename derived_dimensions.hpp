@@ -6,18 +6,6 @@
 #include <type_traits>
 
 namespace si {
-  template <class Length, class Mass, class Time, class Current,
-            class Temperature, class Amount, class Luminosity>
-  struct BaseDimensions {
-    using length = Length;
-    using mass = Mass;
-    using time = Time;
-    using current = Current;
-    using temperature = Temperature;
-    using amount = Amount;
-    using luminosity = Luminosity;
-  };
-
   /** Compile time class which holds a std::ratio for each */
   template <class Length, class Mass, class Time, class Current,
             class Temperature, class Amount, class Luminosity, class Prefix>
@@ -30,22 +18,6 @@ namespace si {
     using amount = Amount;
     using luminosity = Luminosity;
     using prefix = Prefix;
-  };
-
-  template <class BaseDim, class Prefix>
-  struct BaseDimensionToDimension {
-    using type =
-        Dimensions<typename BaseDim::length, typename BaseDim::mass,
-                   typename BaseDim::time, typename BaseDim::current,
-                   typename BaseDim::temperature, typename BaseDim::amount,
-                   typename BaseDim::luminosity, Prefix>;
-  };
-  template <class Dim>
-  struct DimensionToBaseDimension {
-    using type = BaseDimensions<typename Dim::length, typename Dim::mass,
-                                typename Dim::time, typename Dim::current,
-                                typename Dim::temperature, typename Dim::amount,
-                                typename Dim::luminosity>;
   };
 
   template <class Le0, class M0, class Ti0, class C0, class Te0, class A0,

@@ -24,8 +24,7 @@ constexpr auto rescale(const Quantity<Units0, BaseType, Tag>& a,
   } else if constexpr (Ratio0::num == 1 && Ratio0::den == 1) {
     return std::tuple<const T0&, T0>{a, T0{b.underlying_value_no_prefix()}};
   } else if constexpr (Ratio1::num == 1 && Ratio1::den == 1) {
-    return std::tuple<T1, const T1&>{
-        T1{a.underlying_value_no_prefix()}, b};
+    return std::tuple<T1, const T1&>{T1{a.underlying_value_no_prefix()}, b};
   } else {
     using Ratio2 = std::ratio_divide<Ratio1, Ratio0>;
     return std::tuple<const T0&, T0>{a, T0{b.underlying_value()} * Ratio2::num /

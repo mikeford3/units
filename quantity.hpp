@@ -48,9 +48,6 @@ class Quantity {
 
 public:
   using Prefix = typename Units::prefix;
-  using Units_ = Units;
-  using UnitsUnity = si::derived_unity_t<Units>;
-  using BaseUnits = typename si::DimensionToBaseDimension<Units>::type;
   constexpr explicit Quantity(const BaseType& v) : _val(v) {}
   constexpr explicit Quantity(BaseType&& v) : _val(std::move(v)) {}
   constexpr Quantity(Quantity&& o) = default;
