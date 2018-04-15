@@ -16,3 +16,6 @@ using acceleration_t = si::derived_t<velocity_t2, si::Time<-1>>;
 using N_t = si::derived_t<kg_t, acceleration_t>;
 using Pa_t = si::derived_t<N_t, si::Length<-2>>;
 using MPam05_t = si::derived_t<si::mega, Pa_t, si::Length<1, 2>>;
+using m2_t = si::derived_t<si::Length<2>>;
+using m3_t = si::derived_t<si::Length<3>>;
+using m05_t = si::derived_t<si::Length<1, 2>>;

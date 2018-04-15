@@ -11,53 +11,74 @@ void REQUIRE_CLOSE(Quant0 a, Quant1 b) {
 }
 
 SCENARIO("Common Quantities") {
+  GIVEN("a definition of metres, mm and inchs") {
+    using mm = Quantity<si::derived_t<m_t, si::milli>>;
+    using inch = Quantity<si::derived_t<m_t, std::ratio<254, 10000>>>;
+    THEN("1 m == 1,000 mm") { REQUIRE(metres{1} == mm{1000}); }
+    THEN("1 inch = 25.4 mm") { REQUIRE(abs(inch{1} - mm{25.4}) <= mm{0.001}); }
+  }
+
   GIVEN("some common length quantities") {
-    auto x0 = metre{1};
-    auto x1 = metre{-11};
+    auto x0 = metres{1};
+    auto x1 = metres{-11};
     WHEN("adding and subtracting") {
-      THEN("1 + -11 is -10") { REQUIRE(x0 + x1 == metre{-10}); }
-      THEN("1 - -11 is 12") { REQUIRE(x0 - x1 == metre{12}); }
+      THEN("1 + -11 is -10") { REQUIRE(x0 + x1 == metres{-10}); }
+      THEN("1 - -11 is 12") { REQUIRE(x0 - x1 == metres{12}); }
     }
     WHEN("using abs") {
       REQUIRE(std::abs(x0) == x0);
-      REQUIRE(std::abs(x1) == metre{11});
+      REQUIRE(std::abs(x1) == metres{11});
+    }
+    WHEN("using pow") {
+      REQUIRE(pow<2>(x0) == m2{1});
+      REQUIRE(pow<2>(metres{2}) == m2{4});
+      REQUIRE(pow<2>(metres{20}) == m2{400});
+      REQUIRE(pow<2>(metres{-2}) == m2{4});
+      REQUIRE(pow<3>(metres{-2}) == m3{-8});
+      REQUIRE(pow<1>(metres{-2}) == metres{-2});
+    }
+    WHEN("using sqrt") {
+      REQUIRE(sqrt(metres{1}) == m05{1});
+      REQUIRE(sqrt(metres{9}) == m05{3});
+      REQUIRE(sqrt(m2{9}) == metres{3});
+      // REQUIRE(sqrt(m2{-9}) == metres{3});         should assert false
     }
     WHEN("using += and -=") {
       THEN("1 += -11 is -10") {
         x0 += x1;
-        REQUIRE(x0 == metre{-10});
+        REQUIRE(x0 == metres{-10});
       }
       THEN("1 -= -11 is 12") {
         x0 -= x1;
-        REQUIRE(x0 == metre{12});
+        REQUIRE(x0 == metres{12});
       }
       WHEN("using comparisons") {
-        REQUIRE(x0 > metre{-1.5});
-        REQUIRE(x0 > metre{0.5});
-        REQUIRE_FALSE(x0 > metre{1});
-        REQUIRE_FALSE(x0 > metre{1.5});
+        REQUIRE(x0 > metres{-1.5});
+        REQUIRE(x0 > metres{0.5});
+        REQUIRE_FALSE(x0 > metres{1});
+        REQUIRE_FALSE(x0 > metres{1.5});
 
-        REQUIRE(x0 >= metre{-1.5});
-        REQUIRE(x0 >= metre{0.5});
-        REQUIRE(x0 >= metre{1});
-        REQUIRE_FALSE(x0 >= metre{1.5});
+        REQUIRE(x0 >= metres{-1.5});
+        REQUIRE(x0 >= metres{0.5});
+        REQUIRE(x0 >= metres{1});
+        REQUIRE_FALSE(x0 >= metres{1.5});
 
-        REQUIRE_FALSE(x0 < metre{-1.5});
-        REQUIRE_FALSE(x0 < metre{0.5});
-        REQUIRE_FALSE(x0 < metre{1});
-        REQUIRE(x0 < metre{1.5});
+        REQUIRE_FALSE(x0 < metres{-1.5});
+        REQUIRE_FALSE(x0 < metres{0.5});
+        REQUIRE_FALSE(x0 < metres{1});
+        REQUIRE(x0 < metres{1.5});
 
-        REQUIRE_FALSE(x0 <= metre{-1.5});
-        REQUIRE_FALSE(x0 <= metre{0.5});
-        REQUIRE(x0 <= metre{1});
-        REQUIRE(x0 <= metre{1.5});
+        REQUIRE_FALSE(x0 <= metres{-1.5});
+        REQUIRE_FALSE(x0 <= metres{0.5});
+        REQUIRE(x0 <= metres{1});
+        REQUIRE(x0 <= metres{1.5});
       }
     }
   }
   WHEN("Doing work with different prefixes") {
     GIVEN("Some length and area units") {
       using std::abs;
-      using m = metre;
+      using m = metres;
       using mm = Quantity<si::derived_t<si::Length<1>, si::milli>>;
       using dimensionless = Quantity<si::derived_t<si::unity>>;
       WHEN("comparing lengths") {
@@ -272,7 +293,7 @@ SCENARIO("Common Quantities") {
           REQUIRE((m{2} /= two_million) == m{1e-6});
           REQUIRE(abs((m{2} /= two_million) - km{1e-9}) <= m{1e-20});
 
-          REQUIRE_CLOSE((m{2} /= two_million), km{1e-9});
+          REQUIRE(abs((m{2} /= two_million) - km{1e-9}) <= m{1e-20});
         }
       }
       /*WHEN("using multiply") {

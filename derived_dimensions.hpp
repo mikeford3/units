@@ -244,6 +244,22 @@ namespace si {
                                                                              b);
   }
 
+  template <class Le, class M, class Ti, class C, class Te, class A, class Lu,
+            class Pr>
+  constexpr auto
+  sqrt([[maybe_unused]] const si::Dimensions<Le, M, Ti, C, Te, A, Lu, Pr>& a) {
+    using two = std::ratio<2, 1>;
+    // static_assert(std::is_same_v<si::unity, Pr>);
+    using l = std::ratio_divide<Le, two>;
+    using m = std::ratio_divide<M, two>;
+    using t = std::ratio_divide<Ti, two>;
+    using c = std::ratio_divide<C, two>;
+    using te = std::ratio_divide<Te, two>;
+    using am = std::ratio_divide<A, two>;
+    using lu = std::ratio_divide<Lu, two>;
+    return si::Dimensions<l, m, t, c, te, am, lu, Pr>{};
+  }
+
   /** Collect a number of derived or base dimension classes into a single one.
    */
   template <class Arg0, class... Args>
@@ -277,6 +293,7 @@ namespace si {
         std::ratio<count.luminosity.exp.n, count.luminosity.exp.d>,
         std::ratio<1, 1>>{};
   }
+
   /** Convert base dimensions or derived types into a single Dimension class in
    * its "type" alias.*/
   template <class... Args>
