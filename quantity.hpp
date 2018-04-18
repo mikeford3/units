@@ -45,8 +45,8 @@ constexpr bool valid_summand([[maybe_unused]] Arg arg = Arg{}) {
 template <class Units, class BaseType = double, class Tag = std::false_type>
 class Quantity {
   BaseType _val;
-  static_assert(si::is_dimensions(Units{}));
-  static_assert(!si::is_ratio(BaseType{}), "pass in the underlying type as the "
+  static_assert(units::is_dimensions(Units{}));
+  static_assert(!units::is_ratio(BaseType{}), "pass in the underlying type as the "
                                            "2nd argument, did you mean to "
                                            "change the Dimensions type?");
 
@@ -146,7 +146,7 @@ namespace std {
 template <int power, class Units, class BaseType, class Tag>
 constexpr auto pow(const Quantity<Units, BaseType, Tag>& a) {
   // static_assert(power >= 1);
-  using Units0 = si::derived_unity_t<decltype(Units{})>;
+  using Units0 = units::derived_unity_t<decltype(Units{})>;
   if constexpr (power == 1) {
     return a;
   } else {
@@ -185,8 +185,8 @@ namespace Impl {
 
 template <class Units, class BaseType, class Tag>
 constexpr auto sqrt(const Quantity<Units, BaseType, Tag>& a) {
-  using Units0 = si::derived_unity_t<decltype(Units{})>;
-  using Units1 = decltype(si::sqrt(Units0{}));
+  using Units0 = units::derived_unity_t<decltype(Units{})>;
+  using Units1 = decltype(units::sqrt(Units0{}));
   auto val = Impl::sqrt(a.underlying_value_no_prefix());
   return Quantity<Units1, BaseType, Tag>{val};
 }
@@ -284,7 +284,7 @@ constexpr auto operator-(const Quantity<Units0, BaseType, Tag>& a,
 template <class Units0, class Units1, class BaseType, class Tag>
 constexpr auto operator/(const Quantity<Units0, BaseType, Tag>& a,
                          const Quantity<Units1, BaseType, Tag>& b) {
-  using Units = si::derived_unity_t<decltype(Units0{} / Units1{})>;
+  using Units = units::derived_unity_t<decltype(Units0{} / Units1{})>;
   auto a_val = a.underlying_value_no_prefix();
   auto b_val = b.underlying_value_no_prefix();
   return Quantity<Units, BaseType, Tag>{a_val / b_val};
@@ -296,7 +296,7 @@ constexpr auto operator/(const Quantity<Units0, BaseType, Tag>& a,
 template <class Units0, class Units1, class BaseType, class Tag>
 constexpr auto operator*(const Quantity<Units0, BaseType, Tag>& a,
                          const Quantity<Units1, BaseType, Tag>& b) {
-  using Units = si::derived_unity_t<decltype(Units0{} * Units1{})>;
+  using Units = units::derived_unity_t<decltype(Units0{} * Units1{})>;
   auto a_val = a.underlying_value_no_prefix();
   auto b_val = b.underlying_value_no_prefix();
   return Quantity<Units, BaseType, Tag>{a_val * b_val};

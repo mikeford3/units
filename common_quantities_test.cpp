@@ -12,8 +12,8 @@ void REQUIRE_CLOSE(Quant0 a, Quant1 b) {
 
 SCENARIO("Common Quantities") {
   GIVEN("a definition of metres, mm and inchs") {
-    using mm = Quantity<si::derived_t<m_t, si::milli>>;
-    using inch = Quantity<si::derived_t<m_t, std::ratio<254, 10000>>>;
+    using mm = Quantity<units::derived_t<m_t, units::milli>>;
+    using inch = Quantity<units::derived_t<m_t, std::ratio<254, 10000>>>;
     THEN("1 m == 1,000 mm") { REQUIRE(metres{1} == mm{1000}); }
     THEN("1 inch = 25.4 mm") { REQUIRE(abs(inch{1} - mm{25.4}) <= mm{0.001}); }
   }
@@ -79,8 +79,8 @@ SCENARIO("Common Quantities") {
     GIVEN("Some length and area units") {
       using std::abs;
       using m = metres;
-      using mm = Quantity<si::derived_t<si::Length<1>, si::milli>>;
-      using dimensionless = Quantity<si::derived_t<si::unity>>;
+      using mm = Quantity<units::derived_t<units::Length<1>, units::milli>>;
+      using dimensionless = Quantity<units::derived_t<units::unity>>;
       WHEN("comparing lengths") {
         THEN("2 m < 2 km") { REQUIRE(m{2} < km{2}); }
         THEN("2 mm < 2 m") { REQUIRE(mm{2} < m{2}); }
@@ -268,7 +268,7 @@ SCENARIO("Common Quantities") {
       }
       WHEN("multiplying and dividing by dimensionless quantities") {
         auto two = dimensionless{2};
-        auto two_million = Quantity<si::derived_t<si::mega>>{2};
+        auto two_million = Quantity<units::derived_t<units::mega>>{2};
 
         THEN("2m *= 2m / 2m = 2m") { REQUIRE((m{2} *= m{2} / m{2}) == m{2}); }
         THEN("2m *= 4m / 2m = 2m") { REQUIRE((m{2} *= m{4} / m{2}) == m{4}); }

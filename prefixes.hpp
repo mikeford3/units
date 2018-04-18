@@ -32,7 +32,7 @@ constexpr auto rescale(const Quantity<Units0, BaseType, Tag>& a,
   }
 }
 
-namespace si {
+namespace units {
   using nano = std::nano;
   using milli = std::milli;
   using centi = std::centi;
@@ -40,4 +40,4 @@ namespace si {
   using kilo = std::kilo;
   using mega = std::mega;
   using giga = std::giga;
-} // namespace si
+} // namespace units

@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-namespace si {
+namespace units {
   template <intmax_t digit>
   constexpr std::string to_integer_superscript() {
     if constexpr (digit < 0) {
@@ -99,26 +99,26 @@ namespace si {
     }
   }
 
-} // namespace si
+} // namespace units
 
 template <class L, class M, class T, class C, class Te, class A, class Lu,
           class Pr>
 std::ostream& operator<<(std::ostream& os,
-                         const si::Dimensions<L, M, T, C, Te, A, Lu, Pr>&) {
-  using namespace si;
-  using type = si::Dimensions<L, M, T, C, Te, A, Lu, Pr>;
+                         const units::Dimensions<L, M, T, C, Te, A, Lu, Pr>&) {
+  using namespace units;
+  using type = units::Dimensions<L, M, T, C, Te, A, Lu, Pr>;
   using prefix = typename type::prefix;
   bool prefixed = true;
-  if constexpr (std::ratio_not_equal_v<prefix, si::unity>) {
-    if constexpr (std::ratio_equal_v<prefix, si::kilo>)
+  if constexpr (std::ratio_not_equal_v<prefix, units::unity>) {
+    if constexpr (std::ratio_equal_v<prefix, units::kilo>)
       os << "k";
-    else if constexpr (std::ratio_equal_v<prefix, si::mega>)
+    else if constexpr (std::ratio_equal_v<prefix, units::mega>)
       os << "M";
-    else if constexpr (std::ratio_equal_v<prefix, si::giga>)
+    else if constexpr (std::ratio_equal_v<prefix, units::giga>)
       os << "G";
-    else if constexpr (std::ratio_equal_v<prefix, si::milli>)
+    else if constexpr (std::ratio_equal_v<prefix, units::milli>)
       os << "m";
-    else if constexpr (std::ratio_equal_v<prefix, si::centi>)
+    else if constexpr (std::ratio_equal_v<prefix, units::centi>)
       os << "c";
     else
       prefixed = false;
@@ -139,7 +139,7 @@ std::ostream& operator<<(std::ostream& os,
     os << print_unit(Lu{}, "cd");
   if (!prefixed) {
     if constexpr (type::prefix::num == type::prefix::den) {
-      //nothing, x
+      // nothing, x
     } else if constexpr (type::prefix::num / type::prefix::den != 0) {
       constexpr auto pw = std::log10(type::prefix::num / type::prefix::den);
       constexpr auto intpw = static_cast<int>(pw);

@@ -6,83 +6,87 @@
 
 SCENARIO("Derived") {
   GIVEN("some basic instantiation checks") {
-    auto a = si::derived_t<si::Length<1>>();
+    auto a = units::derived_t<units::Length<1>>();
 
-    auto b = si::derived_t<si::Length<-10>>();
+    auto b = units::derived_t<units::Length<-10>>();
     std::cout << a << "\n" << b << "\n";
-    using speed = si::derived_t<si::Length<1>, si::Time<-1>>;
+    using speed = units::derived_t<units::Length<1>, units::Time<-1>>;
 
-    std::cout << si::derived_t<speed>() << "\n";
-    std::cout << si::derived_t<si::Length<1, 1, si::kilo>>{} *
-                     si::derived_t<si::Length<1, 1, si::centi>>{};
-    std::cout << "\nPositive roots : \n\t" << si::derived_t<si::Length<1, 2>>{}
-              << "\t" << si::derived_t<si::Length<1, 3>>{} << "\t"
-              << si::derived_t<si::Length<1, 4>>{} << "\t"
-              << si::derived_t<si::Length<1, 5>>{} << "\t"
-              << si::derived_t<si::Length<1, 6>>{} << "\t"
-              << si::derived_t<si::Length<1, 7>>{} << "\n\t"
-              << si::derived_t<si::Length<1, 8>>{} << "\t"
-              << si::derived_t<si::Length<2, 4>>{} << "\t"
-              << si::derived_t<si::Length<2, 5>>{} << "\t"
-              << si::derived_t<si::Length<2, 7>>{} << "\n";
-    std::cout << "Negative roots : \n\t" << si::derived_t<si::Length<-1, 2>>{}
-              << "\t" << si::derived_t<si::Length<-1, 3>>{} << "\t"
-              << si::derived_t<si::Length<-1, 4>>{} << "\t"
-              << si::derived_t<si::Length<-1, 5>>{} << "\t"
-              << si::derived_t<si::Length<-1, 6>>{} << "\t"
-              << si::derived_t<si::Length<-1, 7>>{} << "\n\t"
-              << si::derived_t<si::Length<-1, 8>>{} << "\t"
-              << si::derived_t<si::Length<-2, 4>>{} << "\t"
-              << si::derived_t<si::Length<-2, 5>>{} << "\t"
-              << si::derived_t<si::Length<-2, 7>>{} << "\n";
+    std::cout << units::derived_t<speed>() << "\n";
+    std::cout << units::derived_t<units::Length<1, 1, units::kilo>>{} *
+                     units::derived_t<units::Length<1, 1, units::centi>>{};
+    std::cout << "\nPositive roots : \n\t"
+              << units::derived_t<units::Length<1, 2>>{} << "\t"
+              << units::derived_t<units::Length<1, 3>>{} << "\t"
+              << units::derived_t<units::Length<1, 4>>{} << "\t"
+              << units::derived_t<units::Length<1, 5>>{} << "\t"
+              << units::derived_t<units::Length<1, 6>>{} << "\t"
+              << units::derived_t<units::Length<1, 7>>{} << "\n\t"
+              << units::derived_t<units::Length<1, 8>>{} << "\t"
+              << units::derived_t<units::Length<2, 4>>{} << "\t"
+              << units::derived_t<units::Length<2, 5>>{} << "\t"
+              << units::derived_t<units::Length<2, 7>>{} << "\n";
+    std::cout << "Negative roots : \n\t"
+              << units::derived_t<units::Length<-1, 2>>{} << "\t"
+              << units::derived_t<units::Length<-1, 3>>{} << "\t"
+              << units::derived_t<units::Length<-1, 4>>{} << "\t"
+              << units::derived_t<units::Length<-1, 5>>{} << "\t"
+              << units::derived_t<units::Length<-1, 6>>{} << "\t"
+              << units::derived_t<units::Length<-1, 7>>{} << "\n\t"
+              << units::derived_t<units::Length<-1, 8>>{} << "\t"
+              << units::derived_t<units::Length<-2, 4>>{} << "\t"
+              << units::derived_t<units::Length<-2, 5>>{} << "\t"
+              << units::derived_t<units::Length<-2, 7>>{} << "\n";
 
-    std::cout << "Positive ints (and 0): \n\t" << si::derived_t<si::Length<0>>{}
-              << "\t" << si::derived_t<si::Length<1>>{} << "\t"
-              << si::derived_t<si::Length<2>>{} << "\t"
-              << si::derived_t<si::Length<3>>{} << "\t"
-              << si::derived_t<si::Length<4>>{} << "\t"
-              << si::derived_t<si::Length<5>>{} << "\t"
-              << si::derived_t<si::Length<6>>{} << "\n\t"
-              << si::derived_t<si::Length<7>>{} << "\t"
-              << si::derived_t<si::Length<8>>{} << "\t"
-              << si::derived_t<si::Length<9>>{} << "\t"
-              << si::derived_t<si::Length<10>>{} << "\t"
-              << si::derived_t<si::Length<11>>{} << "\t"
-              << si::derived_t<si::Length<12>>{} << "\n";
+    std::cout << "Positive ints (and 0): \n\t"
+              << units::derived_t<units::Length<0>>{} << "\t"
+              << units::derived_t<units::Length<1>>{} << "\t"
+              << units::derived_t<units::Length<2>>{} << "\t"
+              << units::derived_t<units::Length<3>>{} << "\t"
+              << units::derived_t<units::Length<4>>{} << "\t"
+              << units::derived_t<units::Length<5>>{} << "\t"
+              << units::derived_t<units::Length<6>>{} << "\n\t"
+              << units::derived_t<units::Length<7>>{} << "\t"
+              << units::derived_t<units::Length<8>>{} << "\t"
+              << units::derived_t<units::Length<9>>{} << "\t"
+              << units::derived_t<units::Length<10>>{} << "\t"
+              << units::derived_t<units::Length<11>>{} << "\t"
+              << units::derived_t<units::Length<12>>{} << "\n";
 
     std::cout << "Negative ints (and 0): \n\t"
-              << si::derived_t<si::Length<-0>>{} << "\t"
-              << si::derived_t<si::Length<-1>>{} << "\t"
-              << si::derived_t<si::Length<-2>>{} << "\t"
-              << si::derived_t<si::Length<-3>>{} << "\t"
-              << si::derived_t<si::Length<-4>>{} << "\t"
-              << si::derived_t<si::Length<-5>>{} << "\t"
-              << si::derived_t<si::Length<-6>>{} << "\n\t"
-              << si::derived_t<si::Length<-7>>{} << "\t"
-              << si::derived_t<si::Length<-8>>{} << "\t"
-              << si::derived_t<si::Length<-9>>{} << "\t"
-              << si::derived_t<si::Length<-10>>{} << "\t"
-              << si::derived_t<si::Length<-11>>{} << "\t"
-              << si::derived_t<si::Length<-12>>{} << "\n";
+              << units::derived_t<units::Length<-0>>{} << "\t"
+              << units::derived_t<units::Length<-1>>{} << "\t"
+              << units::derived_t<units::Length<-2>>{} << "\t"
+              << units::derived_t<units::Length<-3>>{} << "\t"
+              << units::derived_t<units::Length<-4>>{} << "\t"
+              << units::derived_t<units::Length<-5>>{} << "\t"
+              << units::derived_t<units::Length<-6>>{} << "\n\t"
+              << units::derived_t<units::Length<-7>>{} << "\t"
+              << units::derived_t<units::Length<-8>>{} << "\t"
+              << units::derived_t<units::Length<-9>>{} << "\t"
+              << units::derived_t<units::Length<-10>>{} << "\t"
+              << units::derived_t<units::Length<-11>>{} << "\t"
+              << units::derived_t<units::Length<-12>>{} << "\n";
 
-    std::cout << si::derived_t<si::Length<2>, si::Time<-1>, si::Mass<1>>{}
-              << "\n";
+    std::cout
+        << units::derived_t<units::Length<2>, units::Time<-1>, units::Mass<1>>{}
+        << "\n";
   }
 
   GIVEN("the same dimensions with different prefixes") {
-    auto one = si::derived_t<si::Length<1>>{};
-    auto ten = si::derived_t<si::Length<1, 1, std::ratio<10, 1>>>{};
-    auto hundred = si::derived_t<si::Length<1, 1, std::ratio<100, 1>>>{};
-    auto thousand = si::derived_t<si::Length<1, 1, si::kilo>>{};
-    auto inch = si::derived_t<si::Length<1, 1, std::ratio<254, 10000>>>{};
+    auto one = units::derived_t<units::Length<1>>{};
+    auto ten = units::derived_t<units::Length<1, 1, std::ratio<10, 1>>>{};
+    auto hundred = units::derived_t<units::Length<1, 1, std::ratio<100, 1>>>{};
+    auto thousand = units::derived_t<units::Length<1, 1, units::kilo>>{};
+    auto inch = units::derived_t<units::Length<1, 1, std::ratio<254, 10000>>>{};
 
     std::cout << "10^0 " << one << ", 10^1 " << ten << ", 10^2 " << hundred
               << ", 10^3 " << thousand << ", inch " << inch << "\n";
   }
 
   GIVEN("the same dimensions with different powers") {
-    auto a = si::derived_t<si::Length<1>>{};
-    auto b = si::derived_t<si::Length<-10>>{};
+    auto a = units::derived_t<units::Length<1>>{};
+    auto b = units::derived_t<units::Length<-10>>{};
     WHEN("Multiplying them together") {
       auto c = a * b;
       std::cout << a << " * " << b << " = " << c << "\n";
@@ -94,8 +98,8 @@ SCENARIO("Derived") {
   }
 
   GIVEN("different dimensions with different powers") {
-    auto a = si::derived_t<si::Length<1>>{};
-    auto b = si::derived_t<si::Mass<-10>>{};
+    auto a = units::derived_t<units::Length<1>>{};
+    auto b = units::derived_t<units::Mass<-10>>{};
     WHEN("Multiplying them together") {
       auto c = a * b;
       std::cout << a << " * " << b << " = " << c << "\n";
@@ -107,10 +111,10 @@ SCENARIO("Derived") {
   }
 
   GIVEN("what should be dimensionless units") {
-    using dimless0 = si::derived_t<si::unity>;
-    using dimless1 = si::derived_t<si::kilo>;
-    using dimensioned = si::derived_t<si::Length<1>>;
-    
+    using dimless0 = units::derived_t<units::unity>;
+    using dimless1 = units::derived_t<units::kilo>;
+    using dimensioned = units::derived_t<units::Length<1>>;
+
     static_assert(is_dimensionless(dimless0{}));
     static_assert(is_dimensionless(dimless1{}));
     static_assert(!is_dimensionless(dimensioned{}));

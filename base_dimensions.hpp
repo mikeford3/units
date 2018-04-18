@@ -5,7 +5,7 @@
 #include <ratio>
 #include <type_traits>
 
-namespace si {
+namespace units {
   // namespace Impl {
   template <class Arg>
   constexpr std::false_type is_ratio(Arg) {
@@ -17,7 +17,7 @@ namespace si {
     return std::true_type{};
   }
 
-  template <intmax_t n = 1, intmax_t d = 1, class ratio = si::unity>
+  template <intmax_t n = 1, intmax_t d = 1, class ratio = units::unity>
   struct BaseUnit {
     constexpr static auto exp = std::ratio<n, d>{};
     constexpr static auto prefix = ratio{};
@@ -25,7 +25,7 @@ namespace si {
   };
 
 #define MAKE_BASE_UNIT(NAME, ABBREVIATION, LOWER)                              \
-  template <intmax_t n = 1, intmax_t d = 1, class ratio = si::unity>           \
+  template <intmax_t n = 1, intmax_t d = 1, class ratio = units::unity>        \
   struct NAME : BaseUnit<n, d, ratio> {                                        \
     using BaseUnit<n, d, ratio>::BaseUnit;                                     \
   };                                                                           \
@@ -37,7 +37,7 @@ namespace si {
   constexpr auto is_##LOWER(NAME<n, d, ratio>) {                               \
     return std::true_type{};                                                   \
   }                                                                            \
-  template <intmax_t n = 1, intmax_t d = 1, class Ratio = si::unity>           \
+  template <intmax_t n = 1, intmax_t d = 1, class Ratio = units::unity>        \
   using ABBREVIATION = NAME<n, d>;
 
   MAKE_BASE_UNIT(Length, L, length)
@@ -51,11 +51,11 @@ namespace si {
   static_assert(is_length(Length<1>{}));
   static_assert(is_length(Length{}));
   static_assert(is_length(Length<-1, 2>{}));
-  static_assert(is_length(Length<-1, 2, si::kilo>{}));
+  static_assert(is_length(Length<-1, 2, units::kilo>{}));
 
   static_assert(is_length(L<1>{}));
   static_assert(is_mass(Mass<1>{}));
-  static_assert(is_mass(M<1, 2, si::kilo>{}));
+  static_assert(is_mass(M<1, 2, units::kilo>{}));
   static_assert(!is_mass(Length<1>{}));
   static_assert(!is_mass(L<1>{}));
 
@@ -86,6 +86,6 @@ namespace si {
   static_assert(is_base_dimension<Amount<1>>());
   static_assert(is_base_dimension<Current<1>>());
   static_assert(is_base_dimension<Temperature<1>>());
-  static_assert(is_base_dimension<Temperature<1, 2, si::mega>>());
+  static_assert(is_base_dimension<Temperature<1, 2, units::mega>>());
   static_assert(!is_base_dimension<std::integral_constant<int, 1>>());
-} // namespace si
+} // namespace units

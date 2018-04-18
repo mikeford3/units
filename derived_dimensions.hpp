@@ -5,7 +5,7 @@
 #include <exception>
 #include <type_traits>
 
-namespace si {
+namespace units {
   /** Compile time class which holds a std::ratio for each */
   template <class Length, class Mass, class Time, class Current,
             class Temperature, class Amount, class Luminosity, class Prefix>
@@ -195,9 +195,9 @@ namespace si {
     template <class Arg>
     constexpr DimensionCounter parse_arg(Arg arg) {
       auto count = DimensionCounter{};
-      if constexpr (si::is_base_dimension(arg)) {
+      if constexpr (units::is_base_dimension(arg)) {
         count += parse_base_unit(arg);
-      } else if constexpr (si::is_dimensions(arg)) {
+      } else if constexpr (units::is_dimensions(arg)) {
         constexpr auto rt = DimensionCounter(arg);
         count += rt;
         // throw std::logic_error("Oops");
@@ -246,10 +246,10 @@ namespace si {
 
   template <class Le, class M, class Ti, class C, class Te, class A, class Lu,
             class Pr>
-  constexpr auto
-  sqrt([[maybe_unused]] const si::Dimensions<Le, M, Ti, C, Te, A, Lu, Pr>& a) {
+  constexpr auto sqrt([
+      [maybe_unused]] const units::Dimensions<Le, M, Ti, C, Te, A, Lu, Pr>& a) {
     using two = std::ratio<2, 1>;
-    // static_assert(std::is_same_v<si::unity, Pr>);
+    // static_assert(std::is_same_v<units::unity, Pr>);
     using l = std::ratio_divide<Le, two>;
     using m = std::ratio_divide<M, two>;
     using t = std::ratio_divide<Ti, two>;
@@ -257,7 +257,7 @@ namespace si {
     using te = std::ratio_divide<Te, two>;
     using am = std::ratio_divide<A, two>;
     using lu = std::ratio_divide<Lu, two>;
-    return si::Dimensions<l, m, t, c, te, am, lu, Pr>{};
+    return units::Dimensions<l, m, t, c, te, am, lu, Pr>{};
   }
 
   /** Collect a number of derived or base dimension classes into a single one.
@@ -326,4 +326,4 @@ namespace si {
   static_assert(is_derived(derived<Length<1>>{}));
   static_assert(is_derived(derived<Length<1>, Mass<1>>{}));
 
-} // namespace si
+} // namespace units
