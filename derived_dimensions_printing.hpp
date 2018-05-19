@@ -71,8 +71,8 @@ namespace units {
                std::to_string(std::numeric_limits<float>::infinity());
       }
     }
-    constexpr auto positive[[maybe_unused]] = [&] { return N > 0 && D > 0; };
-    constexpr auto negative[[maybe_unused]] = [&] { return !positive(); };
+    constexpr auto positive[[maybe_unused]] = [&] { return (N * D > 0); };
+    constexpr auto negative[[maybe_unused]] = [&] { return (N * D < 0); };
     constexpr auto root_symbol[[maybe_unused]] = [&] {
       return D / N == 2 || D / N == 3 || D / N == 4;
     };

@@ -6,6 +6,7 @@
 #include "prefixes.hpp"
 
 #include <cmath>
+#include <cstdint>
 #include <iostream>
 #include <limits>
 
@@ -15,6 +16,28 @@ constexpr bool valid_summand([[maybe_unused]] Arg arg = Arg{}) {
     return true;
   }
   return false;
+}
+
+/*!
+ * \brief Allow multiplication/division for identical tags, or if only one real
+ * tag
+ *
+ * This is to allow a quantity to be multiplied by time say.
+ * e.g. allows Quantity<...,...,Proxy> * Quantity<...,...,Proxy>,
+ *             Quantity<...,...,Proxy> * Quantity<...,...,std::false_type>
+ *             Quantity<...,...,std::false_type> * Quantity<...,...,Proxy>
+ * */
+template <class Tag0, class Tag1>
+constexpr bool tags_compatible_multiplication() {
+  if constexpr (std::is_same_v<Tag0, Tag1>) {
+    return true;
+  } else if constexpr (std::is_same_v<Tag0, std::false_type>) {
+    return true;
+  } else if constexpr (std::is_same_v<Tag1, std::false_type>) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 /*!
@@ -42,16 +65,12 @@ constexpr bool valid_summand([[maybe_unused]] Arg arg = Arg{}) {
  * free functions.
  */
 
-template <class Units, class BaseType = double, class Tag = std::false_type>
+template <class Units, class BaseType_ = double, class Tag_ = std::false_type>
 class Quantity {
-  BaseType _val;
-  static_assert(units::is_dimensions(Units{}));
-  static_assert(!units::is_ratio(BaseType{}), "pass in the underlying type as the "
-                                           "2nd argument, did you mean to "
-                                           "change the Dimensions type?");
-
 public:
   using Prefix = typename Units::prefix;
+  using Tag = Tag_;
+  using BaseType = BaseType_;
   constexpr explicit Quantity(const BaseType& v) : _val(v) {}
   constexpr explicit Quantity(BaseType&& v) : _val(std::move(v)) {}
   constexpr Quantity(Quantity&& o) = default;
@@ -115,6 +134,14 @@ public:
     _val *= d.underlying_value() * Ratio2::num / Ratio2::den;
     return *this;
   }
+
+private:
+  BaseType _val;
+  static_assert(units::is_dimensions(Units{}));
+  static_assert(!units::is_ratio(BaseType{}),
+                "pass in the underlying type as the "
+                "2nd argument, did you mean to "
+                "change the Dimensions type?");
 };
 
 // ************************************************************************* /
@@ -281,25 +308,37 @@ constexpr auto operator-(const Quantity<Units0, BaseType, Tag>& a,
 /// Division, creates a new Quantity Type with the correct dimensions and a
 /// prefix of unity (1). For example:
 ///
-template <class Units0, class Units1, class BaseType, class Tag>
-constexpr auto operator/(const Quantity<Units0, BaseType, Tag>& a,
-                         const Quantity<Units1, BaseType, Tag>& b) {
+template <
+    class Units0, class Units1, class BaseType, class Tag0, class Tag1,
+    typename = std::enable_if_t<tags_compatible_multiplication<Tag0, Tag1>()>>
+constexpr auto operator/(const Quantity<Units0, BaseType, Tag0>& a,
+                         const Quantity<Units1, BaseType, Tag1>& b) {
   using Units = units::derived_unity_t<decltype(Units0{} / Units1{})>;
   auto a_val = a.underlying_value_no_prefix();
   auto b_val = b.underlying_value_no_prefix();
-  return Quantity<Units, BaseType, Tag>{a_val / b_val};
+  if constexpr (std::is_same_v<Tag0, std::false_type>) {
+    return Quantity<Units, BaseType, Tag1>{a_val / b_val};
+  } else {
+    return Quantity<Units, BaseType, Tag0>{a_val / b_val};
+  }
 }
 
 // convert types bases dimensions to their multiple, then return
 // a variable with a prefix of unity
 // e.g. 1 km * 2 km  ->  1,000 * 2,000 m^2 = 2,000,000 m^2
-template <class Units0, class Units1, class BaseType, class Tag>
-constexpr auto operator*(const Quantity<Units0, BaseType, Tag>& a,
-                         const Quantity<Units1, BaseType, Tag>& b) {
+template <
+    class Units0, class Units1, class BaseType, class Tag0, class Tag1,
+    typename = std::enable_if_t<tags_compatible_multiplication<Tag0, Tag1>()>>
+constexpr auto operator*(const Quantity<Units0, BaseType, Tag0>& a,
+                         const Quantity<Units1, BaseType, Tag1>& b) {
   using Units = units::derived_unity_t<decltype(Units0{} * Units1{})>;
   auto a_val = a.underlying_value_no_prefix();
   auto b_val = b.underlying_value_no_prefix();
-  return Quantity<Units, BaseType, Tag>{a_val * b_val};
+  if constexpr (std::is_same_v<Tag0, std::false_type>) {
+    return Quantity<Units, BaseType, Tag1>{a_val * b_val};
+  } else {
+    return Quantity<Units, BaseType, Tag0>{a_val * b_val};
+  }
 }
 
 // ************************************************************************* /

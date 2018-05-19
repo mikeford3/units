@@ -12,6 +12,9 @@ using MPam05 = Quantity<MPam05_t>;
 using m2 = Quantity<m2_t>;
 using m3 = Quantity<m3_t>;
 using m05 = Quantity<m05_t>;
+using seconds = Quantity<seconds_t>;
+
+using kg = Quantity<kg_t>;
 // using cm = si::Length<1, 1, std::ratio_multiply<decltype(m::prefix),
 // si::centi>>;  using km = si::Length<1, 1,
 // std::ratio_multiply<decltype(m::prefix), si::kilo>>;

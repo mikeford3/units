@@ -2,6 +2,49 @@
 #include <catch.hpp>
 #include <iostream>
 
+SCENARIO("Testing tags") {
+  class Tagged;
+  class Tagged2;
+  using default_type = Quantity<units::derived_t<units::L<1>>>;
+  using tagged_type = Quantity<units::derived_t<units::L<1>>, double, Tagged>;
+  WHEN("using multiplcation") {
+    WHEN("Multiplying the tagged_type by the same tagged_type") {
+      auto res = tagged_type{1} * tagged_type{2};
+      THEN("the tag stays the same") {
+        static_assert(std::is_same_v<decltype(res)::Tag, Tagged>);
+      }
+    }
+    WHEN("Multiplying the untagged by another untagged") {
+      auto res = default_type{1} * default_type{2};
+      THEN("the tag stays the same") {
+        static_assert(std::is_same_v<decltype(res)::Tag, std::false_type>);
+      }
+    }
+    WHEN("Multiplying the tagged by a untagged") {
+      auto res = default_type{1} * tagged_type{2};
+      THEN("the tag stays the same") {
+        static_assert(std::is_same_v<decltype(res)::Tag, Tagged>);
+      }
+    }
+    WHEN("Multiplying the untagged by a tagged") {
+      auto res = tagged_type{1} * default_type{2};
+      THEN("the tag stays the same") {
+        static_assert(std::is_same_v<decltype(res)::Tag, Tagged>);
+      }
+    }
+    WHEN("Multiplying the tagged_type by a different tagged_type, should cause "
+         "compilation error") {
+      // using tagged_type2 =
+      //    Quantity<units::derived_t<units::L<1>>, double, Tagged2>;
+
+      // auto res = tagged_type{1} * tagged_type2{2};
+      THEN("the tag stays the same") {
+        // static_assert(std::is_same_v<decltype(res)::Tag, Tagged>);
+      }
+    }
+  }
+}
+
 SCENARIO("Create some quantities of physical units") {
   using metre_l = units::derived_t<units::L<1>>;
   GIVEN("a quantity with only a unit type, default otherwise") {
