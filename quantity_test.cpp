@@ -59,11 +59,20 @@ SCENARIO("Test pow") {
     THEN(" 2m * 2m * 2m= (2m)^3") {
       REQUIRE(pow<3>(metres{2}) == metres{2} * metres{2} * metres{2});
     }
-    THEN(" 1 / 2m = (2m)^-1") {
-      REQUIRE(pow<-1>(metres{2}) == 1 / metres{2});
-    }
+    THEN(" 1 / 2m = (2m)^-1") { REQUIRE(pow<-1>(metres{2}) == 1 / metres{2}); }
     THEN(" 1 / (2m * 2m) = (2m)^-2") {
       REQUIRE(pow<-2>(metres{2}) == 1 / (metres{2} * metres{2}));
+    }
+  }
+}
+
+SCENARIO("Testing is quantity") {
+  GIVEN("A quantity and a non-quantity object") {
+    constexpr auto quant = Quantity<units::derived_t<units::L<1>>>{2};
+    constexpr auto not_quant = 2.;
+    THEN("the quant is a quantity") { static_assert(is_quantity(quant)); }
+    THEN("the non-quant is not a quantity") {
+      static_assert(!is_quantity(not_quant));
     }
   }
 }

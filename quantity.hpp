@@ -57,6 +57,15 @@ constexpr bool tags_compatible_multiplication() {
  * which can then be compared to floats and integers. These are defeined as
  * free functions.
  */
+template<class Obj>
+constexpr auto is_quantity(Obj) {
+  return false;
+} 
+
+template<class Units, class BaseType, class Tag>
+constexpr auto is_quantity(Quantity<Units, BaseType, Tag>) {
+  return true;
+} 
 
 template <class Units, class BaseType_ = double, class Tag_ = std::false_type>
 class Quantity {
