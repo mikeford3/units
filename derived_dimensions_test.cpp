@@ -119,6 +119,18 @@ SCENARIO("Derived") {
     static_assert(is_dimensionless(dimless1{}));
     static_assert(!is_dimensionless(dimensioned{}));
   }
+
+  GIVEN("a couple of units defined in common_units") {
+    using kg_per_m3 = units::derived_t<kg_t, units::Length<-3, 1>>;
+    THEN("invert should work for a simple case") {
+      //auto a = per_second_t{} == invert(seconds_t{});
+      static_assert(std::is_same_v<per_second_t, decltype(invert(seconds_t{}))>);
+    }
+
+    THEN("then using decltype and / should work") {
+      static_assert(std::is_same_v<kg_per_m3, decltype(kg_t{} / m3_t{})>);
+    }
+  }
 }
 /*
 struct SomeDimensions {

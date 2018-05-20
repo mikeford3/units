@@ -1,46 +1,69 @@
+#include "common_quantities.hpp"
 #include "quantity.hpp"
 #include <catch.hpp>
 #include <iostream>
 
 SCENARIO("Testing tags") {
-  class Tagged;
-  class Tagged2;
-  using default_type = Quantity<units::derived_t<units::L<1>>>;
-  using tagged_type = Quantity<units::derived_t<units::L<1>>, double, Tagged>;
-  WHEN("using multiplcation") {
-    WHEN("Multiplying the tagged_type by the same tagged_type") {
-      auto res = tagged_type{1} * tagged_type{2};
-      THEN("the tag stays the same") {
-        static_assert(std::is_same_v<decltype(res)::Tag, Tagged>);
+  GIVEN("Some simple tags") {
+    class Tagged;
+    class Tagged2;
+    using default_type = Quantity<units::derived_t<units::L<1>>>;
+    using tagged_type = Quantity<units::derived_t<units::L<1>>, double, Tagged>;
+    WHEN("using multiplcation") {
+      WHEN("Multiplying the tagged_type by the same tagged_type") {
+        auto res = tagged_type{1} * tagged_type{2};
+        THEN("the tag stays the same") {
+          static_assert(std::is_same_v<decltype(res)::Tag, Tagged>);
+        }
       }
-    }
-    WHEN("Multiplying the untagged by another untagged") {
-      auto res = default_type{1} * default_type{2};
-      THEN("the tag stays the same") {
-        static_assert(std::is_same_v<decltype(res)::Tag, std::false_type>);
+      WHEN("Multiplying the untagged by another untagged") {
+        auto res = default_type{1} * default_type{2};
+        THEN("the tag stays the same") {
+          static_assert(std::is_same_v<decltype(res)::Tag, std::false_type>);
+        }
       }
-    }
-    WHEN("Multiplying the tagged by a untagged") {
-      auto res = default_type{1} * tagged_type{2};
-      THEN("the tag stays the same") {
-        static_assert(std::is_same_v<decltype(res)::Tag, Tagged>);
+      WHEN("Multiplying the tagged by a untagged") {
+        auto res = default_type{1} * tagged_type{2};
+        THEN("the tag stays the same") {
+          static_assert(std::is_same_v<decltype(res)::Tag, Tagged>);
+        }
       }
-    }
-    WHEN("Multiplying the untagged by a tagged") {
-      auto res = tagged_type{1} * default_type{2};
-      THEN("the tag stays the same") {
-        static_assert(std::is_same_v<decltype(res)::Tag, Tagged>);
+      WHEN("Multiplying the untagged by a tagged") {
+        auto res = tagged_type{1} * default_type{2};
+        THEN("the tag stays the same") {
+          static_assert(std::is_same_v<decltype(res)::Tag, Tagged>);
+        }
       }
-    }
-    WHEN("Multiplying the tagged_type by a different tagged_type, should cause "
-         "compilation error") {
-      // using tagged_type2 =
-      //    Quantity<units::derived_t<units::L<1>>, double, Tagged2>;
+      WHEN("Multiplying the tagged_type by a different tagged_type, should "
+           "cause compilation error") {
+        // using tagged_type2 =
+        //    Quantity<units::derived_t<units::L<1>>, double, Tagged2>;
 
-      // auto res = tagged_type{1} * tagged_type2{2};
-      THEN("the tag stays the same") {
-        // static_assert(std::is_same_v<decltype(res)::Tag, Tagged>);
+        // auto res = tagged_type{1} * tagged_type2{2};
+        THEN("the tag stays the same") {
+          // static_assert(std::is_same_v<decltype(res)::Tag, Tagged>);
+        }
       }
+    }
+  }
+}
+
+SCENARIO("Test pow") {
+  WHEN("raising metres") {
+    THEN(" 2m * 2m = (2m)^2") {
+      REQUIRE(pow<2>(metres{2}) == metres{2} * metres{2});
+    }
+    THEN(" 2m * 2m * 2m= (2m)^3") {
+      REQUIRE(pow<3>(metres{2}) == metres{2} * metres{2} * metres{2});
+    }
+    THEN(" 2m * 2m * 2m= (2m)^3") {
+      REQUIRE(pow<3>(metres{2}) == metres{2} * metres{2} * metres{2});
+    }
+    THEN(" 1 / 2m = (2m)^-1") {
+      REQUIRE(pow<-1>(metres{2}) == 1 / metres{2});
+    }
+    THEN(" 1 / (2m * 2m) = (2m)^-2") {
+      REQUIRE(pow<-2>(metres{2}) == 1 / (metres{2} * metres{2}));
     }
   }
 }
@@ -106,10 +129,19 @@ SCENARIO("Create some quantities of physical units") {
         }
       }
 
-      WHEN("dividing") {
+      WHEN("dividing Quant by int") {
         auto divided = quant / 2;
         THEN(" it should be different") {
           REQUIRE(divided.underlying_value() == dval / 2);
+        }
+      }
+
+      WHEN("dividing int by Quant") {
+        auto divided = 1 / quant;
+        THEN(" it should be different") {
+          REQUIRE(divided.underlying_value() == 1 / dval);
+          REQUIRE(divided ==
+                  Quantity<units::derived_t<units::Length<-1, 1>>>{1 / dval});
         }
       }
 

@@ -244,6 +244,10 @@ namespace units {
                                                                              b);
   }
 
+
+
+ 
+
   template <class Le, class M, class Ti, class C, class Te, class A, class Lu,
             class Pr>
   constexpr auto sqrt([
@@ -258,6 +262,23 @@ namespace units {
     using am = std::ratio_divide<A, two>;
     using lu = std::ratio_divide<Lu, two>;
     return units::Dimensions<l, m, t, c, te, am, lu, Pr>{};
+  }
+
+  template <class Le, class M, class Ti, class C, class Te, class A, class Lu,
+            class Pr>
+  constexpr auto invert([
+      [maybe_unused]] const units::Dimensions<Le, M, Ti, C, Te, A, Lu, Pr>& a) {
+    using minus_1 = std::ratio<-1, 1>;
+    // static_assert(std::is_same_v<units::unity, Pr>);
+    using l = std::ratio_multiply<Le, minus_1>;
+    using m = std::ratio_multiply<M, minus_1>;
+    using t = std::ratio_multiply<Ti, minus_1>;
+    using c = std::ratio_multiply<C, minus_1>;
+    using te = std::ratio_multiply<Te, minus_1>;
+    using am = std::ratio_multiply<A, minus_1>;
+    using lu = std::ratio_multiply<Lu, minus_1>;
+    using pr = std::ratio_divide<std::ratio<1, 1>, Pr>;
+    return units::Dimensions<l, m, t, c, te, am, lu, pr>{};
   }
 
   /** Collect a number of derived or base dimension classes into a single one.
@@ -304,6 +325,12 @@ namespace units {
       return is_base_dimension(arg) || is_derived(arg) || is_dimensions(arg) ||
              is_ratio(arg);
     }));
+    /*template<class Other>
+    static constexpr auto per(Other other = Other{}) {
+      using Inverted = invert(std::move(other));
+
+
+    }*/
   };
 
   template <class... Args>

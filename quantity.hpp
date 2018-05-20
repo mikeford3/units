@@ -172,13 +172,16 @@ namespace std {
 // ************************************************************************* /
 template <int power, class Units, class BaseType, class Tag>
 constexpr auto pow(const Quantity<Units, BaseType, Tag>& a) {
-  // static_assert(power >= 1);
-  using Units0 = units::derived_unity_t<decltype(Units{})>;
   if constexpr (power == 1) {
     return a;
-  } else {
-    auto val = a.underlying_value_no_prefix();
-    return Quantity<Units0, BaseType, Tag>{val} * pow<power - 1>(a);
+  } else if constexpr (power > 1) {
+    return a * pow<power - 1>(a);
+  } else if constexpr (power == -1) {
+    return 1 / a;
+  } else if constexpr (power < -1) {
+    return (1 / a) * pow<power + 1>(a);
+  } else if constexpr (power == 0) {
+    return 1;
   }
 }
 
@@ -350,6 +353,14 @@ template <class Units, class BaseType, class Tag, class Div,
 constexpr auto operator/(const Quantity<Units, BaseType, Tag>& a,
                          const Div& b) {
   return Quantity<Units, BaseType, Tag>{a.underlying_value() / b};
+}
+
+template <class Units, class BaseType, class Tag, class Div,
+          typename = std::enable_if_t<std::is_integral_v<Div>>>
+constexpr auto operator/(const Div& b,
+                         const Quantity<Units, BaseType, Tag>& a) {
+  using InvUnits = decltype(invert(Units{}));
+  return Quantity<InvUnits, BaseType, Tag>{b / a.underlying_value()};
 }
 
 template <class Units, class BaseType, class Tag, class Mult,
