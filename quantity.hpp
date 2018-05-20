@@ -59,12 +59,12 @@ constexpr bool tags_compatible_multiplication() {
  */
 template<class Obj>
 constexpr auto is_quantity(Obj) {
-  return false;
+  return std::false_type{};
 } 
 
 template<class Units, class BaseType, class Tag>
 constexpr auto is_quantity(Quantity<Units, BaseType, Tag>) {
-  return true;
+  return std::true_type{};
 } 
 
 template <class Units, class BaseType_ = double, class Tag_ = std::false_type>
@@ -73,8 +73,8 @@ public:
   using Prefix = typename Units::prefix;
   using Tag = Tag_;
   using BaseType = BaseType_;
-  constexpr explicit Quantity(const BaseType& v) : _val(v) {}
-  constexpr explicit Quantity(BaseType&& v) : _val(std::move(v)) {}
+  constexpr Quantity(const BaseType& v) : _val(v) {}
+  constexpr Quantity(BaseType&& v) : _val(std::move(v)) {}
   constexpr Quantity(Quantity&& o) = default;
   constexpr Quantity(const Quantity& o) = default;
   constexpr Quantity& operator=(Quantity&& o) = default;
