@@ -10,13 +10,6 @@
 #include <iostream>
 #include <limits>
 
-template <class Arg>
-constexpr bool valid_summand([[maybe_unused]] Arg arg = Arg{}) {
-  if constexpr (std::is_floating_point_v<Arg> || std::is_integral_v<Arg>) {
-    return true;
-  }
-  return false;
-}
 
 /*!
  * \brief Allow multiplication/division for identical tags, or if only one real
@@ -105,13 +98,13 @@ public:
     return *this;
   }
 
-  template <class Div, typename = std::enable_if_t<valid_summand(Div{})>>
+  template <class Div, typename = std::enable_if_t<std::is_arithmetic_v<Div>>>
   Quantity& operator/=(const Div& d) {
     _val /= d;
     return *this;
   }
 
-  template <class Mult, typename = std::enable_if_t<valid_summand(Mult{})>>
+  template <class Mult, typename = std::enable_if_t<std::is_arithmetic_v<Mult>>>
   Quantity& operator*=(const Mult& d) {
     _val *= d;
     return *this;
@@ -198,13 +191,13 @@ constexpr auto pow(const Quantity<Units, BaseType, Tag>& a) {
  *   - Otherwise, returns NaN
  */
 namespace Impl {
-  template <class T> //, std::enable_if_t<valid_summand(T{})>>
+  template <class T> //, std::enable_if_t<std::is_arithmetic_v(T{})>>
   T constexpr sqrtNewtonRaphson(T x, T curr, T prev) {
     return curr == prev ? curr
                         : sqrtNewtonRaphson(x, (curr + x / curr) / 2, curr);
   }
 
-  template <class T> //, std::enable_if_t<valid_summand(T{})>>
+  template <class T> //, std::enable_if_t<std::is_arithmetic_v(T{})>>
   T constexpr sqrt(T x) {
     assert(x > 0);
     return x >= 0 && x < std::numeric_limits<T>::infinity()
@@ -349,7 +342,7 @@ constexpr auto operator*(const Quantity<Units0, BaseType, Tag0>& a,
 // ************************************************************************* /
 
 template <class Units, class BaseType, class Tag, class Div,
-          typename = std::enable_if_t<valid_summand(Div{})>>
+          typename = std::enable_if_t<std::is_arithmetic_v<Div>>>
 constexpr auto operator/(const Quantity<Units, BaseType, Tag>& a,
                          const Div& b) {
   return Quantity<Units, BaseType, Tag>{a.underlying_value() / b};
@@ -364,14 +357,14 @@ constexpr auto operator/(const Div& b,
 }
 
 template <class Units, class BaseType, class Tag, class Mult,
-          typename = std::enable_if_t<valid_summand(Mult{})>>
+          typename = std::enable_if_t<std::is_arithmetic_v<Mult>>>
 constexpr auto operator*(const Quantity<Units, BaseType, Tag>& a,
                          const Mult& b) {
   return Quantity<Units, BaseType, Tag>{a.underlying_value() * b};
 }
 
 template <class Units, class BaseType, class Tag, class Mult,
-          typename = std::enable_if_t<valid_summand(Mult{})>>
+          typename = std::enable_if_t<std::is_arithmetic_v<Mult>>>
 constexpr auto operator*(const Mult& b,
                          const Quantity<Units, BaseType, Tag>& a) {
   return Quantity<Units, BaseType, Tag>{a.underlying_value() * b};
@@ -382,7 +375,7 @@ constexpr auto operator*(const Mult& b,
 // ************************************************************************* /
 
 template <class Units, class BaseType, class Tag, class Rhs,
-          typename = std::enable_if_t<valid_summand(Rhs{})>,
+          typename = std::enable_if_t<std::is_arithmetic_v<Rhs>>,
           typename = std::enable_if_t<is_dimensionless(Units{})>>
 constexpr bool operator>(const Quantity<Units, BaseType, Tag>& a,
                          const Rhs& comp) {
@@ -390,7 +383,7 @@ constexpr bool operator>(const Quantity<Units, BaseType, Tag>& a,
 }
 
 template <class Units, class BaseType, class Tag, class Rhs,
-          typename = std::enable_if_t<valid_summand(Rhs{})>,
+          typename = std::enable_if_t<std::is_arithmetic_v<Rhs>>,
           typename = std::enable_if_t<is_dimensionless(Units{})>>
 constexpr bool operator>=(const Quantity<Units, BaseType, Tag>& a,
                           const Rhs& comp) {
@@ -398,7 +391,7 @@ constexpr bool operator>=(const Quantity<Units, BaseType, Tag>& a,
 }
 
 template <class Units, class BaseType, class Tag, class Rhs,
-          typename = std::enable_if_t<valid_summand(Rhs{})>,
+          typename = std::enable_if_t<std::is_arithmetic_v<Rhs>>,
           typename = std::enable_if_t<is_dimensionless(Units{})>>
 constexpr bool operator<(const Quantity<Units, BaseType, Tag>& a,
                          const Rhs& comp) {
@@ -406,7 +399,7 @@ constexpr bool operator<(const Quantity<Units, BaseType, Tag>& a,
 }
 
 template <class Units, class BaseType, class Tag, class Rhs,
-          typename = std::enable_if_t<valid_summand(Rhs{})>,
+          typename = std::enable_if_t<std::is_arithmetic_v<Rhs>>,
           typename = std::enable_if_t<is_dimensionless(Units{})>>
 constexpr bool operator<=(const Quantity<Units, BaseType, Tag>& a,
                           const Rhs& comp) {
@@ -414,7 +407,7 @@ constexpr bool operator<=(const Quantity<Units, BaseType, Tag>& a,
 }
 
 template <class Units, class BaseType, class Tag, class Rhs,
-          typename = std::enable_if_t<valid_summand(Rhs{})>,
+          typename = std::enable_if_t<std::is_arithmetic_v<Rhs>>,
           typename = std::enable_if_t<is_dimensionless(Units{})>>
 constexpr bool operator==(const Quantity<Units, BaseType, Tag>& a,
                           const Rhs& comp) {
@@ -422,7 +415,7 @@ constexpr bool operator==(const Quantity<Units, BaseType, Tag>& a,
 }
 
 template <class Units, class BaseType, class Tag, class Rhs,
-          typename = std::enable_if_t<valid_summand(Rhs{})>,
+          typename = std::enable_if_t<std::is_arithmetic_v<Rhs>>,
           typename = std::enable_if_t<is_dimensionless(Units{})>>
 constexpr bool operator!=(const Quantity<Units, BaseType, Tag>& a,
                           const Rhs& comp) {
@@ -434,7 +427,7 @@ constexpr bool operator!=(const Quantity<Units, BaseType, Tag>& a,
 // ************************************************************************* /
 
 template <class Units, class BaseType, class Tag, class Rhs,
-          typename = std::enable_if_t<valid_summand(Rhs{})>,
+          typename = std::enable_if_t<std::is_arithmetic_v<Rhs>>,
           typename = std::enable_if_t<is_dimensionless(Units{})>>
 constexpr bool operator>(const Rhs& comp,
                          const Quantity<Units, BaseType, Tag>& a) {
@@ -442,7 +435,7 @@ constexpr bool operator>(const Rhs& comp,
 }
 
 template <class Units, class BaseType, class Tag, class Rhs,
-          typename = std::enable_if_t<valid_summand(Rhs{})>,
+          typename = std::enable_if_t<std::is_arithmetic_v<Rhs>>,
           typename = std::enable_if_t<is_dimensionless(Units{})>>
 constexpr bool operator>=(const Rhs& comp,
                           const Quantity<Units, BaseType, Tag>& a) {
@@ -450,7 +443,7 @@ constexpr bool operator>=(const Rhs& comp,
 }
 
 template <class Units, class BaseType, class Tag, class Rhs,
-          typename = std::enable_if_t<valid_summand(Rhs{})>,
+          typename = std::enable_if_t<std::is_arithmetic_v<Rhs>>,
           typename = std::enable_if_t<is_dimensionless(Units{})>>
 constexpr bool operator<(const Rhs& comp,
                          const Quantity<Units, BaseType, Tag>& a) {
@@ -458,7 +451,7 @@ constexpr bool operator<(const Rhs& comp,
 }
 
 template <class Units, class BaseType, class Tag, class Rhs,
-          typename = std::enable_if_t<valid_summand(Rhs{})>,
+          typename = std::enable_if_t<std::is_arithmetic_v<Rhs>>,
           typename = std::enable_if_t<is_dimensionless(Units{})>>
 constexpr bool operator<=(const Rhs& comp,
                           const Quantity<Units, BaseType, Tag>& a) {
@@ -466,7 +459,7 @@ constexpr bool operator<=(const Rhs& comp,
 }
 
 template <class Units, class BaseType, class Tag, class Rhs,
-          typename = std::enable_if_t<valid_summand(Rhs{})>,
+          typename = std::enable_if_t<std::is_arithmetic_v<Rhs>>,
           typename = std::enable_if_t<is_dimensionless(Units{})>>
 constexpr bool operator==(const Rhs& comp,
                           const Quantity<Units, BaseType, Tag>& a) {
@@ -474,7 +467,7 @@ constexpr bool operator==(const Rhs& comp,
 }
 
 template <class Units, class BaseType, class Tag, class Rhs,
-          typename = std::enable_if_t<valid_summand(Rhs{})>,
+          typename = std::enable_if_t<std::is_arithmetic_v<Rhs>>,
           typename = std::enable_if_t<is_dimensionless(Units{})>>
 constexpr bool operator!=(const Rhs& comp,
                           const Quantity<Units, BaseType, Tag>& a) {
