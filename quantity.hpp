@@ -10,7 +10,6 @@
 #include <iostream>
 #include <limits>
 
-
 /*!
  * \brief Allow multiplication/division for identical tags, or if only one real
  * tag
@@ -57,15 +56,15 @@ constexpr bool tags_compatible_multiplication() {
  * which can then be compared to floats and integers. These are defeined as
  * free functions.
  */
-template<class Obj>
+template <class Obj>
 constexpr auto is_quantity(Obj) {
   return std::false_type{};
-} 
+}
 
-template<class Units, class BaseType, class Tag>
+template <class Units, class BaseType, class Tag>
 constexpr auto is_quantity(Quantity<Units, BaseType, Tag>) {
   return std::true_type{};
-} 
+}
 
 template <class Units, class BaseType_ = double, class Tag_ = std::false_type>
 class Quantity {
@@ -73,6 +72,13 @@ public:
   using Prefix = typename Units::prefix;
   using Tag = Tag_;
   using BaseType = BaseType_;
+  constexpr Quantity() = default;
+
+  // Extra ctor to stop narrowing warning errors on creation, these can occur
+  // when an int is passed to the BaseType ctor when the basetype is double.
+  template <class U, std::enable_if_t<std::is_arithmetic_v<U>>>
+  constexpr Quantity(U v) : _val(std::move(v)) {}
+
   constexpr Quantity(const BaseType& v) : _val(v) {}
   constexpr Quantity(BaseType&& v) : _val(std::move(v)) {}
   constexpr Quantity(Quantity&& o) = default;

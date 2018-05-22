@@ -128,7 +128,7 @@ SCENARIO("Derived") {
     }
 
     THEN("then using decltype and / should work") {
-      static_assert(std::is_same_v<kg_per_m3, decltype(kg_t{} / m3_t{})>);
+      static_assert(std::is_same_v<kg_per_m3, decltype(kg_t{} / metres3_t{})>);
     }
   }
 }

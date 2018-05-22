@@ -12,8 +12,8 @@ void REQUIRE_CLOSE(Quant0 a, Quant1 b) {
 
 SCENARIO("Common Quantities") {
   GIVEN("a definition of metres, mm and inchs") {
-    using mm = Quantity<units::derived_t<m_t, units::milli>>;
-    using inch = Quantity<units::derived_t<m_t, std::ratio<254, 10000>>>;
+    using mm = Quantity<units::derived_t<metres_t, units::milli>>;
+    using inch = Quantity<units::derived_t<metres_t, std::ratio<254, 10000>>>;
     THEN("1 m == 1,000 mm") { REQUIRE(metres{1} == mm{1000}); }
     THEN("1 inch = 25.4 mm") { REQUIRE(abs(inch{1} - mm{25.4}) <= mm{0.001}); }
   }
@@ -30,17 +30,17 @@ SCENARIO("Common Quantities") {
       REQUIRE(std::abs(x1) == metres{11});
     }
     WHEN("using pow") {
-      REQUIRE(pow<2>(x0) == m2{1});
-      REQUIRE(pow<2>(metres{2}) == m2{4});
-      REQUIRE(pow<2>(metres{20}) == m2{400});
-      REQUIRE(pow<2>(metres{-2}) == m2{4});
-      REQUIRE(pow<3>(metres{-2}) == m3{-8});
+      REQUIRE(pow<2>(x0) == metres2{1});
+      REQUIRE(pow<2>(metres{2}) == metres2{4});
+      REQUIRE(pow<2>(metres{20}) == metres2{400});
+      REQUIRE(pow<2>(metres{-2}) == metres2{4});
+      REQUIRE(pow<3>(metres{-2}) == metres3{-8});
       REQUIRE(pow<1>(metres{-2}) == metres{-2});
     }
     WHEN("using sqrt") {
-      REQUIRE(sqrt(metres{1}) == m05{1});
-      REQUIRE(sqrt(metres{9}) == m05{3});
-      REQUIRE(sqrt(m2{9}) == metres{3});
+      REQUIRE(sqrt(metres{1}) == metres05{1});
+      REQUIRE(sqrt(metres{9}) == metres05{3});
+      REQUIRE(sqrt(metres2{9}) == metres{3});
       // REQUIRE(sqrt(m2{-9}) == metres{3});         should assert false
     }
     WHEN("using += and -=") {
