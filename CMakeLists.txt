@@ -43,13 +43,13 @@ file(GLOB TEST "base_dimensions_test.cpp" "prefixes_test.cpp" "tagging_logic_tes
 
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -fmax-errors=5")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-braces")# -stdlib=libc++ -lc++abi") #-stdlib=libstdc++ -Wno-missing-braces")
   set(HPX_DIR "/usr/local/lib/hpx_clang/lib/cmake/HPX")
   include_directories(SYSTEM "/usr/local/lib/hpx_clang/include")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas  -fmax-errors=5")
   set(HPX_DIR "/usr/local/lib/hpx_gcc/lib/cmake/HPX")
   include_directories(SYSTEM "/usr/local/lib/hpx_gcc/include")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")

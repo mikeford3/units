@@ -8,4 +8,5 @@ cat prefixes.hpp base_dimensions.hpp derived_dimensions.hpp common_units.hpp qua
 for fname in quantity.hpp base_dimensions.hpp common_quantities.hpp common_units.hpp derived_dimensions.hpp derived_dimensions_printing.hpp prefixes.hpp
 do
    perl -p -i -e "s/#include \"$fname\"//gc" combined.hpp
+   perl -p -i -e "s/#pragma once//gc" combined.hpp
 done

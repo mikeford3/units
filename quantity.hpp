@@ -114,20 +114,22 @@ public:
   }
 
   template <class Div, typename = std::enable_if_t<std::is_arithmetic_v<Div>>>
-  Quantity& operator/=(const Div& d) {
+  Quantity& operator/=(const Div& d) noexcept {
     _val /= d;
     return *this;
   }
 
+  Quantity operator-() const noexcept { return Quantity{-_val}; }
+
   template <class Mult, typename = std::enable_if_t<std::is_arithmetic_v<Mult>>>
-  Quantity& operator*=(const Mult& d) {
+  Quantity& operator*=(const Mult& d) noexcept {
     _val *= d;
     return *this;
   }
 
   template <class Units1,
             typename = std::enable_if_t<is_dimensionless(Units1{})>>
-  Quantity& operator/=(const Quantity<Units1, BaseType, Tag>& d) {
+  Quantity& operator/=(const Quantity<Units1, BaseType, Tag>& d) noexcept {
     using Ratio1 = typename Units1::prefix;
     using Ratio2 = std::ratio_divide<Ratio1, Prefix>;
     _val /= (d.underlying_value() * Ratio2::num / Ratio2::den);
@@ -136,7 +138,7 @@ public:
 
   template <class Units1,
             typename = std::enable_if_t<is_dimensionless(Units1{})>>
-  Quantity& operator*=(const Quantity<Units1, BaseType, Tag>& d) {
+  Quantity& operator*=(const Quantity<Units1, BaseType, Tag>& d) noexcept {
     using Ratio1 = typename Units1::prefix;
     using Ratio2 = std::ratio_divide<Ratio1, Prefix>;
     _val *= d.underlying_value() * Ratio2::num / Ratio2::den;
@@ -145,11 +147,14 @@ public:
 
 private:
   BaseType _val;
+
+  static_assert(!is_quantity(Units{}), "You've passed in a Quantity as the 1st "
+                                       "template parameter, maybe missing a "
+                                       "'_t' in the type");
   static_assert(units::is_dimensions(Units{}));
-  static_assert(!units::is_ratio(BaseType{}),
-                "pass in the underlying type as the "
-                "2nd argument, did you mean to "
-                "change the Dimensions type?");
+  static_assert(!units::is_ratio(BaseType{}), "pass in the underlying type as "
+                                              "the 2nd argument, did you mean "
+                                              "to change the Dimensions type?");
 };
 
 // ************************************************************************* /
@@ -169,10 +174,39 @@ std::ostream& operator<<(std::ostream& os,
 namespace std {
   template <class Units, class BaseType, class Tag>
   constexpr Quantity<Units, BaseType, Tag>
-  abs(const Quantity<Units, BaseType, Tag>& a) {
+  abs(const Quantity<Units, BaseType, Tag>& a) noexcept {
     return Quantity<Units, BaseType, Tag>{std::abs(a.underlying_value())};
   }
+
+  template <class Units, class BaseType, class Tag,
+            typename = std::enable_if_t<std::is_floating_point_v<BaseType>>>
+  constexpr Quantity<Units, BaseType, Tag>
+  fabs(const Quantity<Units, BaseType, Tag>& a) noexcept {
+    return Quantity<Units, BaseType, Tag>{std::fabs(a.underlying_value())};
+  }
+
+  template <class Units, class BaseType, class Tag>
+  class numeric_limits<Quantity<Units, BaseType, Tag>> {
+  public:
+    constexpr static Quantity<Units, BaseType, Tag> max() noexcept {
+      return Quantity<Units, BaseType, Tag>{numeric_limits<BaseType>::max()};
+    }
+    constexpr static Quantity<Units, BaseType, Tag> epsilon() noexcept {
+      return Quantity<Units, BaseType, Tag>{
+          numeric_limits<BaseType>::epsilon()};
+    }
+  };
 } // namespace std
+
+template <class Units, class BaseType, class Tag>
+constexpr auto huge(Quantity<Units, BaseType, Tag>) noexcept {
+  return std::numeric_limits<Quantity<Units, BaseType, Tag>>::max();
+}
+
+template <class Units, class BaseType, class Tag>
+constexpr auto epsilon(Quantity<Units, BaseType, Tag>) noexcept {
+  return std::numeric_limits<Quantity<Units, BaseType, Tag>>::epsilon();
+}
 
 // ************************************************************************* /
 //    Creating a pow function, needs compile time Power as types are         /
@@ -221,13 +255,15 @@ namespace Impl {
   }
 } // namespace Impl
 
-template <class Units, class BaseType, class Tag>
-constexpr auto sqrt(const Quantity<Units, BaseType, Tag>& a) {
-  using Units0 = units::derived_unity_t<decltype(Units{})>;
-  using Units1 = decltype(units::sqrt(Units0{}));
-  auto val = Impl::sqrt(a.underlying_value_no_prefix());
-  return Quantity<Units1, BaseType, Tag>{val};
-}
+namespace std {
+  template <class Units, class BaseType, class Tag>
+  constexpr auto sqrt(const Quantity<Units, BaseType, Tag>& a) {
+    using Units0 = units::derived_unity_t<decltype(Units{})>;
+    using Units1 = decltype(units::sqrt(Units0{}));
+    auto val = Impl::sqrt(a.underlying_value_no_prefix());
+    return Quantity<Units1, BaseType, Tag>{val};
+  }
+} // namespace std
 
 // ************************************************************************* /
 //    Comparison operators, requires the Quantities to have the same         /
@@ -240,7 +276,7 @@ template <class Units0, class Units1, class BaseType, class Tag,
           typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
 constexpr auto operator==(const Quantity<Units0, BaseType, Tag>& a,
                           const Quantity<Units1, BaseType, Tag>& b) {
-  const auto & [ aa, bb ] = rescale(a, b);
+  const auto& [aa, bb] = rescale(a, b);
   return aa.underlying_value() == bb.underlying_value();
 }
 
@@ -257,7 +293,7 @@ template <class Units0, class Units1, class BaseType, class Tag,
           typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
 constexpr auto operator<(const Quantity<Units0, BaseType, Tag>& a,
                          const Quantity<Units1, BaseType, Tag>& b) {
-  const auto & [ aa, bb ] = rescale(a, b);
+  const auto& [aa, bb] = rescale(a, b);
   return aa.underlying_value() < bb.underlying_value();
 }
 
@@ -266,7 +302,7 @@ template <class Units0, class Units1, class BaseType, class Tag,
           typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
 constexpr auto operator<=(const Quantity<Units0, BaseType, Tag>& a,
                           const Quantity<Units1, BaseType, Tag>& b) {
-  const auto & [ aa, bb ] = rescale(a, b);
+  const auto& [aa, bb] = rescale(a, b);
   return aa.underlying_value() <= bb.underlying_value();
 }
 
@@ -275,7 +311,7 @@ template <class Units0, class Units1, class BaseType, class Tag,
           typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
 constexpr auto operator>(const Quantity<Units0, BaseType, Tag>& a,
                          const Quantity<Units1, BaseType, Tag>& b) {
-  const auto & [ aa, bb ] = rescale(a, b);
+  const auto& [aa, bb] = rescale(a, b);
   return aa.underlying_value() > bb.underlying_value();
 }
 
@@ -284,8 +320,18 @@ template <class Units0, class Units1, class BaseType, class Tag,
           typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
 constexpr auto operator>=(const Quantity<Units0, BaseType, Tag>& a,
                           const Quantity<Units1, BaseType, Tag>& b) {
-  const auto & [ aa, bb ] = rescale(a, b);
+  const auto& [aa, bb] = rescale(a, b);
   return aa.underlying_value() >= bb.underlying_value();
+}
+
+/// Greater than or equal
+template <class Units0, class Units1, class Units2, class BaseType, class Tag,
+          typename = std::enable_if_t<same_dimension(Units0{}, Units1{}) &&
+                                      same_dimension(Units0{}, Units2{})>>
+constexpr auto within(const Quantity<Units0, BaseType, Tag>& a,
+                      const Quantity<Units1, BaseType, Tag>& b,
+                      const Quantity<Units2, BaseType, Tag>& tol) {
+  return std::abs(a - b) <= tol;
 }
 
 // ************************************************************************* /
@@ -297,7 +343,7 @@ template <class Units0, class Units1, class BaseType, class Tag,
           typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
 constexpr auto operator+(const Quantity<Units0, BaseType, Tag>& a,
                          const Quantity<Units1, BaseType, Tag>& b) {
-  const auto & [ aa, bb ] = rescale(a, b);
+  const auto& [aa, bb] = rescale(a, b);
   auto tmp{aa};
   return tmp += bb;
 }
@@ -307,7 +353,7 @@ template <class Units0, class Units1, class BaseType, class Tag,
           typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
 constexpr auto operator-(const Quantity<Units0, BaseType, Tag>& a,
                          const Quantity<Units1, BaseType, Tag>& b) {
-  const auto & [ aa, bb ] = rescale(a, b);
+  const auto& [aa, bb] = rescale(a, b);
   auto tmp{aa};
   return tmp -= bb;
 }

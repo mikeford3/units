@@ -79,6 +79,10 @@
         "istream": "cpp",
         "ostream": "cpp",
         "sstream": "cpp",
-        "streambuf": "cpp"
+        "streambuf": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "numeric": "cpp",
+        "cinttypes": "cpp"
     }
 }

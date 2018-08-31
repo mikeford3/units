@@ -77,6 +77,13 @@ SCENARIO("Testing is quantity") {
   }
 }
 
+SCENARIO("Testing std overloads") {
+  GIVEN("A quantity and its underlying type") {
+    THEN("max(metres) and max(double) should be the same") {
+      REQUIRE(std::numeric_limits<metres>::max().underlying_value() == std::numeric_limits<double>::max());
+    }
+  }
+}
 SCENARIO("Create some quantities of physical units") {
   using metre_l = units::derived_t<units::L<1>>;
   GIVEN("a quantity with only a unit type, default otherwise") {

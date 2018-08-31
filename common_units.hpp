@@ -53,14 +53,18 @@ using per_days_t = units::derived_t<units::Time<
 using seconds2_t = units::derived_t<units::Time<2, 1, units::unity>>;
 
 // Length + Time
-using velocity_t = units::derived_t<metres_t, units::Time<-1>>;
-using acceleration_t = units::derived_t<velocity_t, units::Time<-1>>;
+using metres_per_sec_t = units::derived_t<metres_t, units::Time<-1>>;
+using metres_per_sec2_t = units::derived_t<metres_per_sec_t, units::Time<-1>>;
 
 // Energy
-using joules_t = decltype(kg_t{} / (metres2_t{} * seconds2_t{}));
-using watts_t = decltype(joules_t{} / seconds_t{});
+using Joules_t = decltype(kg_t{} * metres2_t{} / seconds2_t{});
+using Watts_t = decltype(Joules_t{} / seconds_t{});
+
+// Momentum
+using kg_metres_per_sec_t = decltype(kg_t{} * metres_per_sec_t{});
+using kg_metres_per_sec2_t = decltype(kg_t{} * metres_per_sec2_t{});
 
 // Engineering units
-using Newtons_t = units::derived_t<kg_t, acceleration_t>;
-using Pascals_t = units::derived_t<Newtons_t, units::Length<-2>>;
+using Newtons_t = units::derived_t<kg_t, metres_per_sec2_t>;
+using Pascals_t = units::derived_t<decltype(Newtons_t{} / metres2_t{})>;
 using MPam05_t = units::derived_t<units::mega, Pascals_t, units::Length<1, 2>>;
