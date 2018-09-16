@@ -7,6 +7,7 @@
 #include <ostream>
 #include <stdio.h>
 #include <string.h>
+#include <string>
 #include <string_constants.hpp>
 
 namespace units {
@@ -17,25 +18,25 @@ namespace units {
       return "";
     }
     if constexpr (digit == 0)
-      return StringFactory(u8"\u2070");
+      return StringConstant(u8"\u2070");
     else if constexpr (digit == 1)
-      return StringFactory(u8"\u00B9");
+      return StringConstant(u8"\u00B9");
     else if constexpr (digit == 2)
-      return StringFactory(u8"\u00B2");
+      return StringConstant(u8"\u00B2");
     else if constexpr (digit == 3)
-      return StringFactory(u8"\u00B3");
+      return StringConstant(u8"\u00B3");
     else if constexpr (digit == 4)
-      return StringFactory(u8"\u2074");
+      return StringConstant(u8"\u2074");
     else if constexpr (digit == 5)
-      return StringFactory(u8"\u2075");
+      return StringConstant(u8"\u2075");
     else if constexpr (digit == 6)
-      return StringFactory(u8"\u2076");
+      return StringConstant(u8"\u2076");
     else if constexpr (digit == 7)
-      return StringFactory(u8"\u2077");
+      return StringConstant(u8"\u2077");
     else if constexpr (digit == 8)
-      return StringFactory(u8"\u2078");
+      return StringConstant(u8"\u2078");
     else if constexpr (digit == 9)
-      return StringFactory(u8"\u2079");
+      return StringConstant(u8"\u2079");
     else
       return to_integer_superscript<digit / 10>() +
              to_integer_superscript<digit % 10>();
@@ -75,11 +76,11 @@ namespace units {
   constexpr auto to_root() {
     static_assert(D / N <= 4 && D / N >= 2);
     if constexpr (D / N == 2)
-      return StringFactory(u8"\u221A");
+      return StringConstant(u8"\u221A");
     else if constexpr (D / N == 3)
-      return StringFactory(u8"\u221B");
+      return StringConstant(u8"\u221B");
     else if constexpr (D / N == 4)
-      return StringFactory(u8"\u221C");
+      return StringConstant(u8"\u221C");
   }
 
   template <intmax_t N, intmax_t D>
@@ -95,7 +96,7 @@ namespace units {
     using namespace std::string_literals;
     if constexpr (D == 0) {
       static_assert(N == 0);
-      return StringFactory("");
+      return StringConstant("");
     }
 
     constexpr auto positive[[maybe_unused]] = [&] { return (N * D > 0); }();
@@ -107,9 +108,9 @@ namespace units {
     constexpr auto nice_fraction[[maybe_unused]] = [&] { return D % N == 0; }();
     constexpr auto sign[[maybe_unused]] = []() {
       if constexpr (positive)
-        return StringFactory("");
+        return StringConstant("");
       else
-        return StringFactory(u8"\u207B");
+        return StringConstant(u8"\u207B");
     }();
     constexpr auto absN[[maybe_unused]] = positive ? N : -N;
     constexpr auto absNc[[maybe_unused]] =
@@ -158,19 +159,19 @@ std::ostream& operator<<(std::ostream& os,
       prefixed = false;
   }
   if constexpr (type::length::num != 0)
-    os << print_unit(L{}, StringFactory("m"));
+    os << print_unit(L{}, StringConstant("m"));
   if constexpr (type::mass::num != 0)
-    os << print_unit(M{}, StringFactory("kg"));
+    os << print_unit(M{}, StringConstant("kg"));
   if constexpr (type::time::num != 0)
-    os << print_unit(T{}, StringFactory("s"));
+    os << print_unit(T{}, StringConstant("s"));
   if constexpr (type::current::num != 0)
-    os << print_unit(C{}, StringFactory("A"));
+    os << print_unit(C{}, StringConstant("A"));
   if constexpr (type::temperature::num != 0)
-    os << print_unit(Te{}, StringFactory("K"));
+    os << print_unit(Te{}, StringConstant("K"));
   if constexpr (type::amount::num != 0)
-    os << print_unit(A{}, StringFactory("mol"));
+    os << print_unit(A{}, StringConstant("mol"));
   if constexpr (type::luminosity::num != 0)
-    os << print_unit(Lu{}, StringFactory("cd"));
+    os << print_unit(Lu{}, StringConstant("cd"));
   if (!prefixed) {
     if constexpr (type::prefix::num == type::prefix::den) {
       // nothing, x

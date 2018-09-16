@@ -3,9 +3,25 @@
 #include "derived_dimensions.hpp"
 #include "derived_dimensions_printing.hpp"
 #include <catch.hpp>
+#include <sstream>
 
 SCENARIO("Derived") {
+  /** Redirect std::cout to a stream upon instantiations, then restores
+std::cout at end of life.*/
+  class IgnoreCoutGuarded {
+    std::streambuf* old; 
+    std::stringstream ss;
+
+  public:
+    IgnoreCoutGuarded() : old{std::cout.rdbuf()} {
+      std::cout.rdbuf(ss.rdbuf());
+    }
+    ~IgnoreCoutGuarded() { std::cout.rdbuf(old); }
+  };
+
   GIVEN("some basic instantiation checks") {
+    auto ignore_cout = IgnoreCoutGuarded();
+
     auto a = units::derived_t<units::Length<1>>();
 
     auto b = units::derived_t<units::Length<-10>>();
@@ -80,11 +96,15 @@ SCENARIO("Derived") {
     auto thousand = units::derived_t<units::Length<1, 1, units::kilo>>{};
     auto inch = units::derived_t<units::Length<1, 1, std::ratio<254, 10000>>>{};
 
+    auto ignore_cout = IgnoreCoutGuarded();
+
     std::cout << "10^0 " << one << ", 10^1 " << ten << ", 10^2 " << hundred
               << ", 10^3 " << thousand << ", inch " << inch << "\n";
   }
 
   GIVEN("the same dimensions with different powers") {
+    auto ignore_cout = IgnoreCoutGuarded();
+
     auto a = units::derived_t<units::Length<1>>{};
     auto b = units::derived_t<units::Length<-10>>{};
     WHEN("Multiplying them together") {
@@ -98,6 +118,8 @@ SCENARIO("Derived") {
   }
 
   GIVEN("different dimensions with different powers") {
+    auto ignore_cout = IgnoreCoutGuarded();
+
     auto a = units::derived_t<units::Length<1>>{};
     auto b = units::derived_t<units::Mass<-10>>{};
     WHEN("Multiplying them together") {
@@ -123,8 +145,9 @@ SCENARIO("Derived") {
   GIVEN("a couple of units defined in common_units") {
     using kg_per_m3 = units::derived_t<kg_t, units::Length<-3, 1>>;
     THEN("invert should work for a simple case") {
-      //auto a = per_second_t{} == invert(seconds_t{});
-      static_assert(std::is_same_v<per_second_t, decltype(invert(seconds_t{}))>);
+      // auto a = per_second_t{} == invert(seconds_t{});
+      static_assert(
+          std::is_same_v<per_second_t, decltype(invert(seconds_t{}))>);
     }
 
     THEN("then using decltype and / should work") {

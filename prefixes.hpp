@@ -4,6 +4,7 @@
 #include <ratio>
 //#include <boost/hana/experimental/printable.hpp>
 #include <utility>
+#include <tuple>
 
 namespace hana = boost::hana;
 

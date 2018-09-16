@@ -1,4 +1,5 @@
 #include "common_quantities.hpp"
+#include "numeric_functions.hpp"
 #include <catch.hpp>
 #include <random>
 #include <vector>
@@ -25,24 +26,7 @@ SCENARIO("Common Quantities") {
       THEN("1 + -11 is -10") { REQUIRE(x0 + x1 == metres{-10}); }
       THEN("1 - -11 is 12") { REQUIRE(x0 - x1 == metres{12}); }
     }
-    WHEN("using abs") {
-      REQUIRE(std::abs(x0) == x0);
-      REQUIRE(std::abs(x1) == metres{11});
-    }
-    WHEN("using pow") {
-      REQUIRE(pow<2>(x0) == metres2{1});
-      REQUIRE(pow<2>(metres{2}) == metres2{4});
-      REQUIRE(pow<2>(metres{20}) == metres2{400});
-      REQUIRE(pow<2>(metres{-2}) == metres2{4});
-      REQUIRE(pow<3>(metres{-2}) == metres3{-8});
-      REQUIRE(pow<1>(metres{-2}) == metres{-2});
-    }
-    WHEN("using sqrt") {
-      REQUIRE(sqrt(metres{1}) == metres05{1});
-      REQUIRE(sqrt(metres{9}) == metres05{3});
-      REQUIRE(sqrt(metres2{9}) == metres{3});
-      // REQUIRE(sqrt(m2{-9}) == metres{3});         should assert false
-    }
+
     WHEN("using += and -=") {
       THEN("1 += -11 is -10") {
         x0 += x1;

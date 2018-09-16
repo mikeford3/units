@@ -1,3 +1,7 @@
 build/*
-combined.hpp
+~units0.hpp
+~units1.hpp
+units.hpp
+unity_test.cpp
+*.exe
 

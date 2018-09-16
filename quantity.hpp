@@ -77,14 +77,22 @@ public:
   // Extra ctor to stop narrowing warning errors on creation, these can occur
   // when an int is passed to the BaseType ctor when the basetype is double.
   template <class U, std::enable_if_t<std::is_arithmetic_v<U>>>
-  constexpr Quantity(U v) : _val(std::move(v)) {}
+  constexpr Quantity(U v) noexcept : _val(std::move(v)) {}
 
-  constexpr Quantity(const BaseType& v) : _val(v) {}
-  constexpr Quantity(BaseType&& v) : _val(std::move(v)) {}
-  constexpr Quantity(Quantity&& o) = default;
-  constexpr Quantity(const Quantity& o) = default;
-  constexpr Quantity& operator=(Quantity&& o) = default;
-  constexpr Quantity& operator=(const Quantity& o) = default;
+  constexpr Quantity(const BaseType& v) noexcept(
+      std::is_nothrow_copy_constructible_v<BaseType>)
+      : _val(v) {}
+  constexpr Quantity(BaseType&& v) noexcept(
+      std::is_nothrow_move_constructible_v<BaseType>)
+      : _val(std::move(v)) {}
+  constexpr Quantity(Quantity&& o) noexcept(
+      std::is_nothrow_move_constructible_v<BaseType>) = default;
+  constexpr Quantity(const Quantity& o) noexcept(
+      std::is_nothrow_copy_constructible_v<BaseType>) = default;
+  constexpr Quantity& operator=(Quantity&& o) noexcept(
+      std::is_nothrow_move_assignable_v<BaseType>) = default;
+  constexpr Quantity& operator=(const Quantity& o) noexcept(
+      std::is_nothrow_copy_assignable_v<BaseType>) = default;
 
   constexpr const BaseType& underlying_value() const noexcept { return _val; }
   constexpr BaseType& underlying_value() noexcept { return _val; }
@@ -168,102 +176,7 @@ std::ostream& operator<<(std::ostream& os,
   return os;
 }
 
-// ************************************************************************* /
-//    Overloading the abs functions /
-// ************************************************************************* /
-namespace std {
-  template <class Units, class BaseType, class Tag>
-  constexpr Quantity<Units, BaseType, Tag>
-  abs(const Quantity<Units, BaseType, Tag>& a) noexcept {
-    return Quantity<Units, BaseType, Tag>{std::abs(a.underlying_value())};
-  }
-
-  template <class Units, class BaseType, class Tag,
-            typename = std::enable_if_t<std::is_floating_point_v<BaseType>>>
-  constexpr Quantity<Units, BaseType, Tag>
-  fabs(const Quantity<Units, BaseType, Tag>& a) noexcept {
-    return Quantity<Units, BaseType, Tag>{std::fabs(a.underlying_value())};
-  }
-
-  template <class Units, class BaseType, class Tag>
-  class numeric_limits<Quantity<Units, BaseType, Tag>> {
-  public:
-    constexpr static Quantity<Units, BaseType, Tag> max() noexcept {
-      return Quantity<Units, BaseType, Tag>{numeric_limits<BaseType>::max()};
-    }
-    constexpr static Quantity<Units, BaseType, Tag> epsilon() noexcept {
-      return Quantity<Units, BaseType, Tag>{
-          numeric_limits<BaseType>::epsilon()};
-    }
-  };
-} // namespace std
-
-template <class Units, class BaseType, class Tag>
-constexpr auto huge(Quantity<Units, BaseType, Tag>) noexcept {
-  return std::numeric_limits<Quantity<Units, BaseType, Tag>>::max();
-}
-
-template <class Units, class BaseType, class Tag>
-constexpr auto epsilon(Quantity<Units, BaseType, Tag>) noexcept {
-  return std::numeric_limits<Quantity<Units, BaseType, Tag>>::epsilon();
-}
-
-// ************************************************************************* /
-//    Creating a pow function, needs compile time Power as types are         /
-//    generated                                                              /
-// ************************************************************************* /
-template <int power, class Units, class BaseType, class Tag>
-constexpr auto pow(const Quantity<Units, BaseType, Tag>& a) {
-  if constexpr (power == 1) {
-    return a;
-  } else if constexpr (power > 1) {
-    return a * pow<power - 1>(a);
-  } else if constexpr (power == -1) {
-    return 1 / a;
-  } else if constexpr (power < -1) {
-    return (1 / a) * pow<power + 1>(a);
-  } else if constexpr (power == 0) {
-    return 1;
-  }
-}
-
-// ************************************************************************* /
-//    Creating a sqrt function, needs compile time Power as types are        /
-//    generated                                                              /
-// ************************************************************************* /
-
-/*
- * Constexpr version of the square root
- * Return value:
- *   - For a finite and non-negative value of "x", returns an approximation for
- * the square root of "x"
- *   - Otherwise, returns NaN
- */
-namespace Impl {
-  template <class T> //, std::enable_if_t<std::is_arithmetic_v(T{})>>
-  T constexpr sqrtNewtonRaphson(T x, T curr, T prev) {
-    return curr == prev ? curr
-                        : sqrtNewtonRaphson(x, (curr + x / curr) / 2, curr);
-  }
-
-  template <class T> //, std::enable_if_t<std::is_arithmetic_v(T{})>>
-  T constexpr sqrt(T x) {
-    assert(x > 0);
-    return x >= 0 && x < std::numeric_limits<T>::infinity()
-               ? Impl::sqrtNewtonRaphson(x, x, T{0})
-               : std::numeric_limits<T>::quiet_NaN();
-  }
-} // namespace Impl
-
-namespace std {
-  template <class Units, class BaseType, class Tag>
-  constexpr auto sqrt(const Quantity<Units, BaseType, Tag>& a) {
-    using Units0 = units::derived_unity_t<decltype(Units{})>;
-    using Units1 = decltype(units::sqrt(Units0{}));
-    auto val = Impl::sqrt(a.underlying_value_no_prefix());
-    return Quantity<Units1, BaseType, Tag>{val};
-  }
-} // namespace std
+// ********************
 
 // ************************************************************************* /
 //    Comparison operators, requires the Quantities to have the same         /

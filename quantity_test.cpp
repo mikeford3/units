@@ -48,23 +48,6 @@ SCENARIO("Testing tags") {
   }
 }
 
-SCENARIO("Test pow") {
-  WHEN("raising metres") {
-    THEN(" 2m * 2m = (2m)^2") {
-      REQUIRE(pow<2>(metres{2}) == metres{2} * metres{2});
-    }
-    THEN(" 2m * 2m * 2m= (2m)^3") {
-      REQUIRE(pow<3>(metres{2}) == metres{2} * metres{2} * metres{2});
-    }
-    THEN(" 2m * 2m * 2m= (2m)^3") {
-      REQUIRE(pow<3>(metres{2}) == metres{2} * metres{2} * metres{2});
-    }
-    THEN(" 1 / 2m = (2m)^-1") { REQUIRE(pow<-1>(metres{2}) == 1 / metres{2}); }
-    THEN(" 1 / (2m * 2m) = (2m)^-2") {
-      REQUIRE(pow<-2>(metres{2}) == 1 / (metres{2} * metres{2}));
-    }
-  }
-}
 
 SCENARIO("Testing is quantity") {
   GIVEN("A quantity and a non-quantity object") {
@@ -77,13 +60,7 @@ SCENARIO("Testing is quantity") {
   }
 }
 
-SCENARIO("Testing std overloads") {
-  GIVEN("A quantity and its underlying type") {
-    THEN("max(metres) and max(double) should be the same") {
-      REQUIRE(std::numeric_limits<metres>::max().underlying_value() == std::numeric_limits<double>::max());
-    }
-  }
-}
+
 SCENARIO("Create some quantities of physical units") {
   using metre_l = units::derived_t<units::L<1>>;
   GIVEN("a quantity with only a unit type, default otherwise") {
@@ -94,7 +71,7 @@ SCENARIO("Create some quantities of physical units") {
       auto quant_sq = quant * quant;
       THEN("the units must have changed") {
         // std::cout << quant;
-        std::cout << quant << " * " << quant << " = " << quant_sq << "\n";
+        //std::cout << quant << " * " << quant << " = " << quant_sq << "\n";
         static_assert(
             std::is_same_v<Quantity<units::derived_t<units::Length<2>>>,
                            decltype(quant_sq)>);
