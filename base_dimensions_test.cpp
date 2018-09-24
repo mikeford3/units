@@ -2,9 +2,9 @@
 #include <catch.hpp>
 #include "derived_dimensions.hpp"
 
-SCENARIO("Base") {
+/*SCENARIO("Base") {
     GIVEN("some basic instantiation checks") {
         //si::mass a;
         //si::mass<std::kilo> b;
     }
-}
+}*/

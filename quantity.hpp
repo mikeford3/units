@@ -94,13 +94,31 @@ public:
   constexpr Quantity& operator=(const Quantity& o) noexcept(
       std::is_nothrow_copy_assignable_v<BaseType>) = default;
 
-  constexpr const BaseType& underlying_value() const noexcept { return _val; }
-  constexpr BaseType& underlying_value() noexcept { return _val; }
+  // Casts to basetype, doesn't convert to SI etc.
+  // Return reference to BaseType if Quantity is an lvalue (& qualified)
+  // Return value of BaseType if Quantity is an rvalue (&& qualified)
+  constexpr const BaseType& underlying_value() const& noexcept { return _val; }
+  constexpr BaseType& underlying_value() & noexcept { return _val; }
+  constexpr BaseType underlying_value() const&& noexcept { return _val; }
+  constexpr BaseType underlying_value() && noexcept { return _val; }
+
+  constexpr explicit operator BaseType&() const& noexcept { return _val; }
+  constexpr explicit operator BaseType&() & noexcept { return _val; }
+  constexpr explicit operator BaseType() const&& noexcept { return _val; }
+  constexpr explicit operator BaseType() && noexcept { return _val; }
 
   /// Returns a copy of _val, converted to a prefix of 1, so if the units of
   /// this type are km and the _val is 1, then this returns 1000 (in m)
   constexpr BaseType underlying_value_no_prefix() const noexcept {
     return _val * Prefix::num / Prefix::den;
+  }
+
+  // Only want to define this if BaseType is not bool, otherwise the casts to
+  // BaseType would already define the bool operator
+  template <class Proxy = BaseType,
+            typename = std::enable_if_t<!std::is_same_v<Proxy, bool>>>
+  constexpr explicit operator bool() const noexcept {
+    return static_cast<bool>(_val);
   }
 
   template <class Units1,
@@ -237,14 +255,17 @@ constexpr auto operator>=(const Quantity<Units0, BaseType, Tag>& a,
   return aa.underlying_value() >= bb.underlying_value();
 }
 
-/// Greater than or equal
+/// Within a tolerance
 template <class Units0, class Units1, class Units2, class BaseType, class Tag,
           typename = std::enable_if_t<same_dimension(Units0{}, Units1{}) &&
                                       same_dimension(Units0{}, Units2{})>>
 constexpr auto within(const Quantity<Units0, BaseType, Tag>& a,
                       const Quantity<Units1, BaseType, Tag>& b,
                       const Quantity<Units2, BaseType, Tag>& tol) {
-  return std::abs(a - b) <= tol;
+  assert(tol.underlying_value() >= 0);
+  const auto delta = a - b;
+  using Delta = decltype(delta);
+  return Delta{std::abs(delta.underlying_value())} <= tol;
 }
 
 // ************************************************************************* /
@@ -345,7 +366,7 @@ constexpr auto operator*(const Mult& b,
 }
 
 // ************************************************************************* /
-//    Comparison Functions, Quantity on LHS                                  /
+//    Comparison Functions, Dimensionless Quantity on LHS                    /
 // ************************************************************************* /
 
 template <class Units, class BaseType, class Tag, class Rhs,
@@ -397,9 +418,9 @@ constexpr bool operator!=(const Quantity<Units, BaseType, Tag>& a,
 }
 
 // ************************************************************************* /
-//    Comparison Functions, Quantity on RHS                                  /
+//    Comparison Functions, Dimensionless Quantity on RHS                    /
 // ************************************************************************* /
-
+// useful for ratios, e.g. length1/ length0 > 5
 template <class Units, class BaseType, class Tag, class Rhs,
           typename = std::enable_if_t<std::is_arithmetic_v<Rhs>>,
           typename = std::enable_if_t<is_dimensionless(Units{})>>

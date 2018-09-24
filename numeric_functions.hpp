@@ -77,22 +77,11 @@ namespace std {
   fabs(const Quantity<Units, BaseType, Tag>& a) noexcept {
     return Quantity<Units, BaseType, Tag>{std::fabs(a.underlying_value())};
   }
-
 } // namespace std
 
 // ************************************************************************* /
 //    Specialising the numeric_limits functions /
 // ************************************************************************* /
-
-// Dirty dirty macros, but better than lots of copy/paste!?
-
-#define UNITS_NUMERIC_LIMITS_FUNCTIONS(FUNC)                                   \
-  template <typename = std::enable_if_t<std::experimental::is_detected_v<      \
-                std::numeric_limits, BaseType>>>                               \
-  constexpr static Quantity<Units, BaseType, Tag> FUNC() noexcept {            \
-    return Quantity<Units, BaseType, Tag>{                                     \
-        std::numeric_limits<BaseType>::FUNC()};                                \
-  }
 
 namespace std {
   template <class Units, class BaseType, class Tag>

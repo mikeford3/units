@@ -56,6 +56,35 @@ SCENARIO("Common Quantities") {
         REQUIRE_FALSE(x0 <= metres{0.5});
         REQUIRE(x0 <= metres{1});
         REQUIRE(x0 <= metres{1.5});
+
+        REQUIRE(within(metres{1}, metres{1}, metres{0.001}));
+        REQUIRE(!within(metres{1.1}, metres{1}, metres{0.001}));
+        REQUIRE(!within(metres{1}, metres{1.1}, metres{0.001}));
+
+        REQUIRE(within(metres{-1}, metres{-1}, metres{0.001}));
+        REQUIRE(!within(metres{-1}, metres{1}, metres{0.001}));
+        REQUIRE(!within(metres{1}, metres{-1}, metres{0.001}));
+      }
+      WHEN("Comparing to an arithmetic value") {
+        WHEN("the quantity is on the left") {
+          REQUIRE(metres{5} / metres{5} == 1);
+          REQUIRE(metres{5} / metres{5} != 2);
+          REQUIRE(metres{5} / metres{5} > 0.99);
+          REQUIRE(metres{5} / metres{5} >= 0.99);
+          REQUIRE(metres{5} / metres{5} >= 1);
+          REQUIRE(metres{5} / metres{5} < 1.01);
+          REQUIRE(metres{5} / metres{5} <= 1.01);
+        }
+
+        WHEN("the quantity is on the right") {
+          REQUIRE(1 == metres{5} / metres{5});
+          REQUIRE(2 != metres{5} / metres{5});
+          REQUIRE(0.99 < metres{5} / metres{5});
+          REQUIRE(0.99 <= metres{5} / metres{5});
+          REQUIRE(1 >= metres{5} / metres{5});
+          REQUIRE(1.01 > metres{5} / metres{5});
+          REQUIRE(1.01 >= metres{5} / metres{5});
+        }
       }
     }
   }
@@ -283,8 +312,8 @@ SCENARIO("Common Quantities") {
       /*WHEN("using multiply") {
 
         THEN("2 m * 2 m = 4 m^2") { REQUIRE(m{2} * m{2} == m2{4}); }
-        THEN("2 m * 2000 m = 4000 m^2") { REQUIRE(m{2} * m{2000} == m2{4000}); }
-        THEN("2 m * -2 m = -4 m^2") { REQUIRE(m{2} * m{-2} == m2{-4}); }
+        THEN("2 m * 2000 m = 4000 m^2") { REQUIRE(m{2} * m{2000} == m2{4000});
+      } THEN("2 m * -2 m = -4 m^2") { REQUIRE(m{2} * m{-2} == m2{-4}); }
         THEN("2 m * -2000 m = -4000 m^2") {
           REQUIRE(m{2} * m{-2000} == m2{-4000});
         }
