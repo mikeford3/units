@@ -93,9 +93,9 @@ namespace units {
 
     struct DimensionCounter {
       struct runtime_ratio {
-        intmax_t n;
-        intmax_t d;
-        constexpr runtime_ratio() : n{0}, d{1} {}
+        intmax_t n = 0;
+        intmax_t d = 1;
+        constexpr runtime_ratio() = default;
         constexpr runtime_ratio(intmax_t a, intmax_t b) : n{a}, d{b} {}
         constexpr runtime_ratio& operator+=(const runtime_ratio& other) {
           n = n * other.d + other.n * d;
@@ -209,7 +209,7 @@ namespace units {
       return count;
     }
 
-    /** At compile time create a dimension counter and add all of the Args to
+     /** At compile time create a dimension counter and add all of the Args to
      * it. */
     template <class... Args>
     constexpr auto parse_units() {
@@ -217,9 +217,9 @@ namespace units {
       constexpr auto args = boost::hana::tuple<Args...>{};
       boost::hana::for_each(
           args, [&count](auto arg) { count += Impl::parse_arg(arg); });
-
       return count;
     }
+
     constexpr auto combine_prefixes(DimensionCounter count) {
       auto prefix = count.length.prefix;
       prefix *= count.mass.prefix;
@@ -243,10 +243,6 @@ namespace units {
     return Impl::dimensions_operator<std::ratio_subtract, std::ratio_divide>(a,
                                                                              b);
   }
-
-
-
- 
 
   template <class Le, class M, class Ti, class C, class Te, class A, class Lu,
             class Pr>
