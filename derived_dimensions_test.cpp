@@ -20,7 +20,7 @@ std::cout at end of life.*/
   };
 
   GIVEN("some basic instantiation checks") {
-    auto ignore_cout = IgnoreCoutGuarded();
+    //auto ignore_cout = IgnoreCoutGuarded();
 
     auto a = units::derived_t<units::Length<1>>();
 
