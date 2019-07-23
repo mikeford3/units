@@ -82,14 +82,14 @@ done
 
 #helper functions to build and run tests in gcc and clang
 make_gcc(){
-    g++ unity_test.cpp -o Unity_Test_GCC.exe -std=c++17 -Wall -Wpedantic
+    g++ unity_test.cpp -o Unity_Test_GCC.exe -std=c++2a -Wall -Wpedantic
     echo "gcc build complete"
 }
 test_gcc(){
     ./Unity_Test_GCC.exe ~[profile]
 }
 make_clang(){
-    clang++ unity_test.cpp -o Unity_Test_clang.exe -std=c++17 -Wall -Wpedantic
+    clang++ unity_test.cpp -o Unity_Test_clang.exe -std=c++2a -Wall -Wpedantic
     echo "clang build complete"
 }
 test_clang(){

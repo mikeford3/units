@@ -11,6 +11,15 @@
 #include <string_constants.hpp>
 
 namespace units {
+
+  // template <size_t N>
+  // std::ostream& operator<<(std::ostream& os, StringConstant<N> sc) {
+  //   for (int i = 0; i < sc.Length(); ++i) {
+  //     os << sc[i];
+  //   }
+  //   return os;
+  // }
+
   /** Takes an int as a template arg and returns the superscript chars, use to
    *  print powers, e.g m^2.*/
   template <intmax_t digit>
@@ -20,25 +29,25 @@ namespace units {
       return "";
     }
     if constexpr (digit == 0)
-      return StringConstant("\u2070");
+      return StringFactory("\u2070");
     else if constexpr (digit == 1)
-      return StringConstant("\u00B9");
+      return StringFactory("\u00B9");
     else if constexpr (digit == 2)
-      return StringConstant("\u00B2");
+      return StringFactory("\u00B2");
     else if constexpr (digit == 3)
-      return StringConstant("\u00B3");
+      return StringFactory("\u00B3");
     else if constexpr (digit == 4)
-      return StringConstant("\u2074");
+      return StringFactory("\u2074");
     else if constexpr (digit == 5)
-      return StringConstant("\u2075");
+      return StringFactory("\u2075");
     else if constexpr (digit == 6)
-      return StringConstant("\u2076");
+      return StringFactory("\u2076");
     else if constexpr (digit == 7)
-      return StringConstant("\u2077");
+      return StringFactory("\u2077");
     else if constexpr (digit == 8)
-      return StringConstant("\u2078");
+      return StringFactory("\u2078");
     else if constexpr (digit == 9)
-      return StringConstant("\u2079");
+      return StringFactory("\u2079");
     else
       return to_integer_superscript<digit / 10>() +
              to_integer_superscript<digit % 10>();
@@ -84,11 +93,11 @@ namespace units {
   constexpr auto to_root() {
     static_assert(D / N <= 4 && D / N >= 2);
     if constexpr (D / N == 2)
-      return StringConstant("\u221A");
+      return StringFactory("\u221A");
     else if constexpr (D / N == 3)
-      return StringConstant("\u221B");
+      return StringFactory("\u221B");
     else if constexpr (D / N == 4)
-      return StringConstant("\u221C");
+      return StringFactory("\u221C");
   }
 
   /** Return string for power that is a fraction */
@@ -100,21 +109,18 @@ namespace units {
     return number;
   }
 
-  /** Add the power to the baseUnit as a suffix, or put a symbol before the baseUnit such as crbt.
-   *  Returns a StringConstant of the correct length.
-   *  For example:
-   *     baseUnit = "m", N = 3 and D = 1 returns
-   *     "m^3"  (but with 3 as a superscript)
-   *  or
-   *     baseUnit = "kg", N = 1 and D = 2 returns
-   *    "sqrtkg", but with the symbol for sqrt
+  /** Add the power to the baseUnit as a suffix, or put a symbol before the
+   * baseUnit such as crbt. Returns a StringConstant of the correct length. For
+   * example: baseUnit = "m", N = 3 and D = 1 returns "m^3"  (but with 3 as a
+   * superscript) or baseUnit = "kg", N = 1 and D = 2 returns "sqrtkg", but with
+   * the symbol for sqrt
    */
   template <intmax_t N, intmax_t D, size_t N1>
   constexpr auto print_unit(std::ratio<N, D>, StringConstant<N1> baseUnit) {
     using namespace std::string_literals;
     if constexpr (D == 0) {
       static_assert(N == 0);
-      return StringConstant("");
+      return StringFactory("");
     }
 
     constexpr auto positive [[maybe_unused]] = [&] { return (N * D > 0); }();
@@ -127,9 +133,9 @@ namespace units {
         [[maybe_unused]] = [&] { return D % N == 0; }();
     constexpr auto sign [[maybe_unused]] = []() {
       if constexpr (positive)
-        return StringConstant("");
+        return StringFactory("");
       else
-        return StringConstant("\u207B");
+        return StringFactory("\u207B");
     }();
     constexpr auto absN [[maybe_unused]] = positive ? N : -N;
     constexpr auto absNc [[maybe_unused]] =
@@ -188,19 +194,19 @@ std::ostream& operator<<(std::ostream& os,
   }
   // print the dimension
   if constexpr (type::length::num != 0)
-    os << print_unit(L{}, StringConstant("m"));
+    os << print_unit(L{}, StringFactory("m"));
   if constexpr (type::mass::num != 0)
-    os << print_unit(M{}, StringConstant("kg"));
+    os << print_unit(M{}, StringFactory("kg"));
   if constexpr (type::time::num != 0)
-    os << print_unit(T{}, StringConstant("s"));
+    os << print_unit(T{}, StringFactory("s"));
   if constexpr (type::current::num != 0)
-    os << print_unit(C{}, StringConstant("A"));
+    os << print_unit(C{}, StringFactory("A"));
   if constexpr (type::temperature::num != 0)
-    os << print_unit(Te{}, StringConstant("K"));
+    os << print_unit(Te{}, StringFactory("K"));
   if constexpr (type::amount::num != 0)
-    os << print_unit(A{}, StringConstant("mol"));
+    os << print_unit(A{}, StringFactory("mol"));
   if constexpr (type::luminosity::num != 0)
-    os << print_unit(Lu{}, StringConstant("cd"));
+    os << print_unit(Lu{}, StringFactory("cd"));
 
   // if no prefix (k, M) etc then maybe we should add "x 10 ^ ?"
   if (!prefixed) {
