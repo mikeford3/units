@@ -3,9 +3,11 @@
 rm -f ~units0.hpp units.hpp 
 
 #files to combine, order important (quantity depends on derived_dimensions...)
-files=(prefixes.hpp base_dimensions.hpp derived_dimensions.hpp \
+files=(prefixes.hpp base_dimensions.hpp derived_dimensions_impl.hpp \
     derived_dimensions_printing.hpp common_units.hpp quantity.hpp \
-    common_quantities.hpp numeric_functions.hpp)
+    common_quantities.hpp numeric_functions.hpp derived_dimensions.hpp)
+
+
     
 #combine them all into a temporary file, add an empty line as a break (some files
 #might not end with a newline)
@@ -103,6 +105,16 @@ echo "building with gcc...."
 echo "building with clang...."
 
 wait < <(jobs -p)
+
+cp units.hpp /usr/local/include/units.hpp
+
+#cp files for individual includes
+for fname in ${files[*]}
+do
+    cp $fname "/usr/local/include/"$fname
+done
+
+
 
 #reset delimiter
 IFS=IFS_backup

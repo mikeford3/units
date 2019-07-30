@@ -1,6 +1,6 @@
 #pragma once
 
-#include "derived_dimensions.hpp"
+#include "derived_dimensions_impl.hpp"
 #include <cmath>
 #include <limits>
 #include <locale>

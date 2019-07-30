@@ -55,6 +55,7 @@ using seconds2_t = units::derived_t<units::Time<2, 1, units::unity>>;
 // Length + Time
 using metres_per_sec_t = units::derived_t<metres_t, units::Time<-1>>;
 using metres_per_sec2_t = units::derived_t<metres_per_sec_t, units::Time<-1>>;
+using metres2_per_sec2_t = decltype(metres2_t{} / seconds2_t{});
 
 // Energy
 using Joules_t = decltype(kg_t{} * metres2_t{} / seconds2_t{});

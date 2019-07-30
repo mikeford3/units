@@ -127,11 +127,18 @@ using joule = Quanity<joule_t>;
 using kg_t = derived_t<Mass<1>>;
 using ton_t = derived_t<kg_t, std::ratio<1000, 1>>;      
 using metres_t = derived_t<Length<1>>; 
+using inch_t = derived_t<Length<1>, std::ratio<254, 10000>>;
 using metres_per_sec_t = derived_t<metres_t, Time<-1>>;
 using joule_t = derived_t<Mass, Length<2>, Time<-2>>;
 
+// The most convenient way to create derived types is with decltype (once a few derived_t's are defined)
+using kg_metres_t = decltype(kg_t{} * metres_t{}); // torque
+using metres2_t = decltype(metres_t{} * metres_t{}); // area
+using ton_per_metres3_t = decltype(ton_t{} / (metres_t{} * metres2_t{})); // density in tons per cubic metre
+
 // Although the Quantities can just be defined without the _t typedefs, e.g.
 using ton = Quantity<derived_t<Mass<1>, std::ratio<1000,1>>>; 
+using ton_per_cubic_inch = Quanity<decltype(ton_t{} / (inch_t{} * inch_t{} * inch_t{}))>;
 ```
 ### Converting types
 The derived_t types have constexpr division and multiplication functions that create the correct type without requiring the types to be explicitly declared or defined. For example:
@@ -146,7 +153,8 @@ auto energy = kinetic_energy(ton{25}, inches_per_year{2000});
 ```
 Will still work. The prefixes (std::ratios) would be combined to calculate the correct factor to convert to joules.
 
-# Printing values
+# Helper functions
+## Printing values
 The `<<` operator is overloaded for Quanties, which prints out both the value and the units (the derived_t), for example the derived_t values could be (using the unicode symbols for superscript 1, 2, 3 etc and for the roots):
 Positive roots : 
 
@@ -172,11 +180,90 @@ Printing out a Quantity of 1 million metres ^ -0.5 kg s^-2:
 
         1 Mm⁻⁰⋅⁵⁰kgs⁻²  
 
-# Compile times
-Are bad (and a work in progress!)
+## Comparators
+The usual comparison operators are provided: ==, !=, <, <=, >, =>, which account for the prefix provided:
+```C++ 
+assert(tons{1} > kg{999});
+assert(tons{1} < kg{1001});
+```
+
+## Numeric
+
+### Pow
+An implementation of pow is provided which returns the correct type, for example:
+```C++
+assert(pow<2>(metres{2}) == metres2{4});
+```
+The power to be raised by is passed by template argument as a parameter.
+
+### Square root
+An implementation of sqrt is provided which returns the correct type, for example:
+```C++
+assert(sqrt(metres2{100}) == metres{10});
+```
+
+### abs and fabs
+```C++
+assert(metres{100} == abs(-metres{100}));
+assert(metres{100} == fabs(-metres{100}));
+```
+
+### Numeric Limits
+The following functions and definitions in std::numeric_limits are overloaded\defined for Quantities. In all cases they use the existing definition in std::numeric_limits for the underlying type (double, float etc):
+```C++
+std::min;
+std::max;
+std::lowest;
+std::epsilon;
+std::round_error;
+std::infinity;
+std::quiet_NaN;
+std::signaling_NaN;
+std::denorm_min;
+
+std::numeric_limits::max_exponent;
+std::numeric_limits::max_exponent10;
+std::numeric_limits::min_exponent;
+std::numeric_limits::min_exponent10;
+std::numeric_limits::radix;
+std::numeric_limits::digits;
+std::numeric_limits::max_digits10;
+std::numeric_limits::is_specialized;
+std::numeric_limits::is_signed;
+std::numeric_limits::is_integer;
+std::numeric_limits::is_exact;
+std::numeric_limits::has_infinity;
+std::numeric_limits::has_quiet_NaN;
+std::numeric_limits::has_signaling_NaN;
+std::numeric_limits::has_denorm;
+std::numeric_limits::has_denorm_loss;
+std::numeric_limits::round_style;
+std::numeric_limits::is_iec559;
+std::numeric_limits::is_bounded;
+std::numeric_limits::is_modulo;
+std::numeric_limits::traps;
+std::numeric_limits::tinyness_before;
+```
+
+### Convenience Functions
+A few nice functions are borrowed from Fortran that alias numeric_limits functions:
+```C++
+huge(Quantity) // calls std::numeric_limits<Quantity>::max; 
+tiny(Quantity) // calls std::numeric_limits<Quantity>::min; 
+epsilon(Quantity) // calls std::numeric_limits<Quantity>::epsilon; 
+```
+# Weaknesses
+## Compile Time
+Are bad.
 I think defining the commonly used types in a .cpp file would allow the compiler to instantiate them once only. The `using ...` approach outlined above is simpler, but causes the compiler to instantiate types in every translation unit they are used in. 
 
+## Debug Runtime
+Are slower than using doubles by a rough factor of 3 in the test cases uses to exercise the code. The Quanity classes are simple for the optimiser to see through - all operations use the single member variable only and the class is only the size of the underlying value (typically double), so release builds are usually as fast as the use of doubles, generating the same code (viewed a number of times in Godbolt).
+
 # Dependencies
+Catch - unit testing
+string_constants - compile time strings (to be removed now that constexpr strings and vectors are in C++20)
+boost/hana - metaprogramming library
 
 
 
