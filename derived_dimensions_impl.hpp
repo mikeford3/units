@@ -76,7 +76,6 @@ namespace units {
   }
 
   namespace Impl {
-
     template <template <class, class> class BinOpDim,
               template <class, class> class BinOpPre, class Le0, class M0,
               class Ti0, class C0, class Te0, class A0, class Lu0, class Le1,
@@ -121,18 +120,9 @@ namespace units {
           return *this;
         }
       };
-      struct runtime_base {
-        runtime_ratio exp{0, 1};
-        runtime_ratio prefix{1, 1};
-        constexpr runtime_base& operator+=(const runtime_base& other) {
-          exp += other.exp;
-          prefix *= other.prefix;
-          return *this;
-        }
-      };
 
-      runtime_base length{}, mass{}, time{}, current{}, temperature{}, amount{},
-          luminosity{};
+      runtime_ratio length{}, mass{}, time{}, current{}, temperature{},
+          amount{}, luminosity{}, prefix{1, 1};
       constexpr DimensionCounter& operator+=(const DimensionCounter& other) {
         length += other.length;
         mass += other.mass;
@@ -141,6 +131,7 @@ namespace units {
         temperature += other.temperature;
         amount += other.amount;
         luminosity += other.luminosity;
+        prefix *= other.prefix;
         return *this;
       }
       constexpr DimensionCounter() = default;
@@ -148,17 +139,18 @@ namespace units {
       template <class Le, class M, class Ti, class C, class Te, class A,
                 class Lu, class Pr>
       constexpr DimensionCounter(const Dimensions<Le, M, Ti, C, Te, A, Lu, Pr>&)
-          : length{{Le::num, Le::den}, {Pr::num, Pr::den}},
-            mass{{M::num, M::den}, {1, 1}},
-            time{{Ti::num, Ti::den}, {1, 1}},
-            current{{C::num, C::den}, {1, 1}},
-            temperature{{Te::num, Te::den}, {1, 1}},
-            amount{{A::num, A::den}, {1, 1}},
-            luminosity{{Lu::num, Lu::den}, {1, 1}} {}
+          : length{Le::num, Le::den},
+            mass{M::num, M::den},
+            time{Ti::num, Ti::den},
+            current{C::num, C::den},
+            temperature{Te::num, Te::den},
+            amount{A::num, A::den},
+            luminosity{Lu::num, Lu::den},
+            prefix{Pr::num, Pr::den} {}
 
       template <intmax_t N, intmax_t D>
       constexpr auto add_prefix(std::ratio<N, D> r) {
-        luminosity.prefix *= r;
+        prefix *= r;
       }
     };
 
@@ -166,26 +158,19 @@ namespace units {
     constexpr DimensionCounter parse_base_unit(Arg arg) {
       auto count = DimensionCounter{};
       if constexpr (is_length(arg)) {
-        count.length.exp += Arg::exp;
-        count.length.prefix *= Arg::prefix;
+        count.length += Arg::exp;
       } else if constexpr (is_time(arg)) {
-        count.time.exp += Arg::exp;
-        count.time.prefix *= Arg::prefix;
+        count.time += Arg::exp;
       } else if constexpr (is_mass(arg)) {
-        count.mass.exp += Arg::exp;
-        count.mass.prefix *= Arg::prefix;
+        count.mass += Arg::exp;
       } else if constexpr (is_temperature(arg)) {
-        count.temperature.exp += Arg::exp;
-        count.temperature.prefix *= Arg::prefix;
+        count.temperature += Arg::exp;
       } else if constexpr (is_amount(arg)) {
-        count.amount.exp += Arg::exp;
-        count.amount.prefix *= Arg::prefix;
+        count.amount += Arg::exp;
       } else if constexpr (is_luminosity(arg)) {
-        count.luminosity.exp += Arg::exp;
-        count.luminosity.prefix *= Arg::prefix;
+        count.luminosity += Arg::exp;
       } else if constexpr (is_current(arg)) {
-        count.current.exp += Arg::exp;
-        count.current.prefix *= Arg::prefix;
+        count.current += Arg::exp;
       } else {
         assert(false);
       }
@@ -209,7 +194,7 @@ namespace units {
       return count;
     }
 
-     /** At compile time create a dimension counter and add all of the Args to
+    /** At compile time create a dimension counter and add all of the Args to
      * it. */
     template <class... Args>
     constexpr auto parse_units() {
@@ -220,21 +205,10 @@ namespace units {
       return count;
     }
 
-    constexpr auto combine_prefixes(DimensionCounter count) {
-      auto prefix = count.length.prefix;
-      prefix *= count.mass.prefix;
-      prefix *= count.time.prefix;
-      prefix *= count.current.prefix;
-      prefix *= count.temperature.prefix;
-      prefix *= count.amount.prefix;
-      prefix *= count.luminosity.prefix;
-      return prefix;
-    }
   } // namespace Impl
+
   template <class... Args0, class... Args1>
-  constexpr auto
-  operator*(Dimensions<Args0...> a,   // = Dimensions<Args0...>{},
-            Dimensions<Args1...> b) { //} = Dimensions<Args1...>{}) {
+  constexpr auto operator*(Dimensions<Args0...> a, Dimensions<Args1...> b) {
     return Impl::dimensions_operator<std::ratio_add, std::ratio_multiply>(a, b);
   }
 
@@ -282,16 +256,16 @@ namespace units {
   template <class Arg0, class... Args>
   constexpr auto parse_units() {
     constexpr auto count = Impl::parse_units<Arg0, Args...>();
-    constexpr auto prefix = Impl::combine_prefixes(count);
     return Dimensions<
-        std::ratio<count.length.exp.n, count.length.exp.d>,
-        std::ratio<count.mass.exp.n, count.mass.exp.d>,
-        std::ratio<count.time.exp.n, count.time.exp.d>,
-        std::ratio<count.current.exp.n, count.current.exp.d>,
-        std::ratio<count.temperature.exp.n, count.temperature.exp.d>,
-        std::ratio<count.amount.exp.n, count.amount.exp.d>,
-        std::ratio<count.luminosity.exp.n, count.luminosity.exp.d>,
-        std::ratio<prefix.n, prefix.d>>{};
+        // units::Length<count.length.exp.n, count.length.exp.d>,
+        std::ratio<count.length.n, count.length.d>,
+        std::ratio<count.mass.n, count.mass.d>,
+        std::ratio<count.time.n, count.time.d>,
+        std::ratio<count.current.n, count.current.d>,
+        std::ratio<count.temperature.n, count.temperature.d>,
+        std::ratio<count.amount.n, count.amount.d>,
+        std::ratio<count.luminosity.n, count.luminosity.d>,
+        std::ratio<count.prefix.n, count.prefix.d>>{};
   }
   /*constexpr auto parse_units() {
     return Dimensions{};
@@ -300,15 +274,14 @@ namespace units {
   template <class Arg0, class... Args>
   constexpr auto parse_units_unity_prefix() {
     constexpr auto count = Impl::parse_units<Arg0, Args...>();
-    return Dimensions<
-        std::ratio<count.length.exp.n, count.length.exp.d>,
-        std::ratio<count.mass.exp.n, count.mass.exp.d>,
-        std::ratio<count.time.exp.n, count.time.exp.d>,
-        std::ratio<count.current.exp.n, count.current.exp.d>,
-        std::ratio<count.temperature.exp.n, count.temperature.exp.d>,
-        std::ratio<count.amount.exp.n, count.amount.exp.d>,
-        std::ratio<count.luminosity.exp.n, count.luminosity.exp.d>,
-        std::ratio<1, 1>>{};
+    return Dimensions<std::ratio<count.length.n, count.length.d>,
+                      std::ratio<count.mass.n, count.mass.d>,
+                      std::ratio<count.time.n, count.time.d>,
+                      std::ratio<count.current.n, count.current.d>,
+                      std::ratio<count.temperature.n, count.temperature.d>,
+                      std::ratio<count.amount.n, count.amount.d>,
+                      std::ratio<count.luminosity.n, count.luminosity.d>,
+                      std::ratio<1, 1>>{};
   }
 
   /** Convert base dimensions or derived types into a single Dimension class in

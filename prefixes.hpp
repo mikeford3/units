@@ -3,8 +3,8 @@
 #include <boost/hana.hpp>
 #include <ratio>
 //#include <boost/hana/experimental/printable.hpp>
-#include <utility>
 #include <tuple>
+#include <utility>
 
 namespace hana = boost::hana;
 

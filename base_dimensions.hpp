@@ -17,27 +17,27 @@ namespace units {
     return std::true_type{};
   }
 
-  template <intmax_t n = 1, intmax_t d = 1, class ratio = units::unity>
+  template <intmax_t n = 1, intmax_t d = 1>
   struct BaseUnit {
     constexpr static auto exp = std::ratio<n, d>{};
-    constexpr static auto prefix = ratio{};
-    static_assert(is_ratio(ratio{}));
+    constexpr static auto num = n;
+    constexpr static auto den = d;
   };
 
 #define MAKE_BASE_UNIT(NAME, ABBREVIATION, LOWER)                              \
-  template <intmax_t n = 1, intmax_t d = 1, class ratio = units::unity>        \
-  struct NAME : BaseUnit<n, d, ratio> {                                        \
-    using BaseUnit<n, d, ratio>::BaseUnit;                                     \
+  template <intmax_t n = 1, intmax_t d = 1>                                    \
+  struct NAME : BaseUnit<n, d> {                                               \
+    using BaseUnit<n, d>::BaseUnit;                                            \
   };                                                                           \
   template <class Arg>                                                         \
   constexpr auto is_##LOWER(Arg) {                                             \
     return std::false_type{};                                                  \
   }                                                                            \
-  template <intmax_t n, intmax_t d, class ratio>                               \
-  constexpr auto is_##LOWER(NAME<n, d, ratio>) {                               \
+  template <intmax_t n, intmax_t d>                                            \
+  constexpr auto is_##LOWER(NAME<n, d>) {                                      \
     return std::true_type{};                                                   \
   }                                                                            \
-  template <intmax_t n = 1, intmax_t d = 1, class Ratio = units::unity>        \
+  template <intmax_t n = 1, intmax_t d = 1>                                    \
   using ABBREVIATION = NAME<n, d>;
 
   MAKE_BASE_UNIT(Length, L, length)
@@ -51,11 +51,9 @@ namespace units {
   static_assert(is_length(Length<1>{}));
   static_assert(is_length(Length{}));
   static_assert(is_length(Length<-1, 2>{}));
-  static_assert(is_length(Length<-1, 2, units::kilo>{}));
 
   static_assert(is_length(L<1>{}));
   static_assert(is_mass(Mass<1>{}));
-  static_assert(is_mass(M<1, 2, units::kilo>{}));
   static_assert(!is_mass(Length<1>{}));
   static_assert(!is_mass(L<1>{}));
 
@@ -86,6 +84,5 @@ namespace units {
   static_assert(is_base_dimension<Amount<1>>());
   static_assert(is_base_dimension<Current<1>>());
   static_assert(is_base_dimension<Temperature<1>>());
-  static_assert(is_base_dimension<Temperature<1, 2, units::mega>>());
   static_assert(!is_base_dimension<std::integral_constant<int, 1>>());
 } // namespace units

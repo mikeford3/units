@@ -4,17 +4,19 @@
 #include "prefixes.hpp"
 
 // Masses
-using kg_t = units::derived_t<units::Mass<1, 1, units::unity>>;
+using kg_t = units::derived_t<units::Mass<1, 1>>;
 
 // Lengths
-using metres_t = units::derived_t<units::Length<1, 1, units::unity>>;
-using cm_t = units::derived_t<
-    units::Length<1, 1, std::ratio_multiply<metres_t::prefix, units::centi>>>;
-using km_t = units::derived_t<
-    units::Length<1, 1, std::ratio_multiply<metres_t::prefix, units::kilo>>>;
+using metres_t = units::derived_t<units::Length<1, 1>>;
+using cm_t =
+    units::derived_t<units::Length<1, 1>,
+                     std::ratio_multiply<metres_t::prefix, units::centi>>;
+using km_t =
+    units::derived_t<units::Length<1, 1>,
+                     std::ratio_multiply<metres_t::prefix, units::kilo>>;
 
 // Areas
-using metres2_t = units::derived_t<units::Length<2, 1, units::unity>>;
+using metres2_t = units::derived_t<units::Length<2, 1>, units::unity>;
 using acre_t = units::derived_t<
     metres2_t,
     std::ratio_multiply<metres2_t::prefix, std::ratio<404'685'642, 1>>>;
@@ -32,25 +34,31 @@ using imp_gallon_t = units::derived_t<litres_t, std::ratio<454'609, 100'000>>;
 using metres05_t = units::derived_t<units::Length<1, 2>>;
 
 // Times
-using seconds_t = units::derived_t<units::Time<1, 1, units::unity>>;
-using minutes_t = units::derived_t<units::Time<
-    1, 1, std::ratio_multiply<seconds_t::prefix, std::ratio<60, 1>>>>;
-using hours_t = units::derived_t<units::Time<
-    1, 1, std::ratio_multiply<seconds_t::prefix, std::ratio<3600, 1>>>>;
-using days_t = units::derived_t<
-    units::Time<1, 1, std::ratio_multiply<hours_t::prefix, std::ratio<24, 1>>>>;
+using seconds_t = units::derived_t<units::Time<1, 1>, units::unity>;
+using minutes_t =
+    units::derived_t<units::Time<1, 1>,
+                     std::ratio_multiply<seconds_t::prefix, std::ratio<60, 1>>>;
+using hours_t = units::derived_t<
+    units::Time<1, 1>,
+    std::ratio_multiply<seconds_t::prefix, std::ratio<3600, 1>>>;
+using days_t =
+    units::derived_t<units::Time<1, 1>,
+                     std::ratio_multiply<hours_t::prefix, std::ratio<24, 1>>>;
 
 // Rates
-using per_second_t = units::derived_t<units::Time<-1, 1, units::unity>>;
-using per_min_t = units::derived_t<units::Time<
-    -1, 1, std::ratio_multiply<seconds_t::prefix, std::ratio<60, 1>>>>;
-using per_hour_t = units::derived_t<units::Time<
-    -1, 1, std::ratio_multiply<seconds_t::prefix, std::ratio<3600, 1>>>>;
-using per_days_t = units::derived_t<units::Time<
-    -1, 1, std::ratio_multiply<hours_t::prefix, std::ratio<24, 1>>>>;
+using per_second_t = units::derived_t<units::Time<-1, 1>, units::unity>;
+using per_min_t =
+    units::derived_t<units::Time<-1, 1>,
+                     std::ratio_multiply<seconds_t::prefix, std::ratio<60, 1>>>;
+using per_hour_t = units::derived_t<
+    units::Time<-1, 1>,
+    std::ratio_multiply<seconds_t::prefix, std::ratio<3600, 1>>>;
+using per_days_t =
+    units::derived_t<units::Time<-1, 1>,
+                     std::ratio_multiply<hours_t::prefix, std::ratio<24, 1>>>;
 
 // Time Extras
-using seconds2_t = units::derived_t<units::Time<2, 1, units::unity>>;
+using seconds2_t = units::derived_t<units::Time<2, 1>, units::unity>;
 
 // Length + Time
 using metres_per_sec_t = units::derived_t<metres_t, units::Time<-1>>;

@@ -9,7 +9,7 @@ SCENARIO("Derived") {
   /** Redirect std::cout to a stream upon instantiations, then restores
 std::cout at end of life.*/
   class IgnoreCoutGuarded {
-    std::streambuf* old; 
+    std::streambuf* old;
     std::stringstream ss;
 
   public:
@@ -20,7 +20,7 @@ std::cout at end of life.*/
   };
 
   GIVEN("some basic instantiation checks") {
-    //auto ignore_cout = IgnoreCoutGuarded();
+    // auto ignore_cout = IgnoreCoutGuarded();
 
     auto a = units::derived_t<units::Length<1>>();
 
@@ -29,8 +29,8 @@ std::cout at end of life.*/
     using speed = units::derived_t<units::Length<1>, units::Time<-1>>;
 
     std::cout << units::derived_t<speed>() << "\n";
-    std::cout << units::derived_t<units::Length<1, 1, units::kilo>>{} *
-                     units::derived_t<units::Length<1, 1, units::centi>>{};
+    std::cout << units::derived_t<units::Length<1, 1>, units::kilo>{} *
+                     units::derived_t<units::Length<1, 1>, units::centi>{};
     std::cout << "\nPositive roots : \n\t"
               << units::derived_t<units::Length<1, 2>>{} << "\t"
               << units::derived_t<units::Length<1, 3>>{} << "\t"
@@ -91,10 +91,10 @@ std::cout at end of life.*/
 
   GIVEN("the same dimensions with different prefixes") {
     auto one = units::derived_t<units::Length<1>>{};
-    auto ten = units::derived_t<units::Length<1, 1, std::ratio<10, 1>>>{};
-    auto hundred = units::derived_t<units::Length<1, 1, std::ratio<100, 1>>>{};
-    auto thousand = units::derived_t<units::Length<1, 1, units::kilo>>{};
-    auto inch = units::derived_t<units::Length<1, 1, std::ratio<254, 10000>>>{};
+    auto ten = units::derived_t<units::Length<1, 1>, std::ratio<10, 1>>{};
+    auto hundred = units::derived_t<units::Length<1, 1>, std::ratio<100, 1>>{};
+    auto thousand = units::derived_t<units::Length<1, 1>, units::kilo>{};
+    auto inch = units::derived_t<units::Length<1, 1>, std::ratio<254, 10000>>{};
 
     auto ignore_cout = IgnoreCoutGuarded();
 
@@ -155,15 +155,3 @@ std::cout at end of life.*/
     }
   }
 }
-/*
-struct SomeDimensions {
-  Mass<ton> mass;
-  Speed speed;                 // m/s, float
-  Velocity<mph> velocity;      // miles per hour,
-  Derived<std::mega, m, s<-2>> // m/s^2 x 10^6
-      using Gravities = Derived<m, s<-2>, std::ratio<981, 100>> // 9.81 m/s^2
-      using Speed = Derived<m, s<-1>>;
-  using Acceleration = Derived<Speed, s<-1>>;
-  using MarsGravities = Derivec < Accleration,
-        std::ratio_multiple<std::ratio<376, 1000>, Gravities>;
-} */
