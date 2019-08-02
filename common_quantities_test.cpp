@@ -17,8 +17,16 @@ SCENARIO("Common Quantities") {
     using inch = Quantity<units::derived_t<metres_t, std::ratio<254, 10000>>>;
     THEN("1 m == 1,000 mm") { REQUIRE(metres{1} == mm{1000}); }
     THEN("1 inch = 25.4 mm") { REQUIRE(abs(inch{1} - mm{25.4}) <= mm{0.001}); }
+    // THEN("Check compiler error") { REQUIRE(inch{2} == kg{1}); }
   }
 
+  GIVEN("some tags") {
+    using mm_tag0 = Quantity<units::derived_t<metres_t>, double, class Tag0>;
+    using mm_tag1 = Quantity<units::derived_t<metres_t>, double, class Tag1>;
+    // stop warning about unused local typedef if check not run
+    REQUIRE((mm_tag0{0} == mm_tag0{0} && mm_tag1{1} == mm_tag1{1}));
+    // THEN("Check compiler error") { REQUIRE(mm_tag0{0} == mm_tag1{0}); }
+  }
   GIVEN("some common length quantities") {
     auto x0 = metres{1};
     auto x1 = metres{-11};

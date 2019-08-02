@@ -202,11 +202,37 @@ std::ostream& operator<<(std::ostream& os,
 //    /
 // ************************************************************************* /
 
+template <class... Args>
+struct Names {
+  operator bool() const = delete;
+};
+
+template <class Dimension>
+constexpr auto make_names_from_dimension([[maybe_unused]] Dimension) {
+  using namespace units;
+  return Names<
+      Length<Dimension::length::num, Dimension::length::den>,
+      Mass<Dimension::mass::num, Dimension::mass::den>,
+      Time<Dimension::time::num, Dimension::time::den>,
+      Current<Dimension::current::num, Dimension::current::den>,
+      Temperature<Dimension::temperature::num, Dimension::temperature::den>,
+      Amount<Dimension::amount::num, Dimension::amount::den>,
+      Luminosity<Dimension::luminosity::num, Dimension::luminosity::den>>{};
+}
+
+template <bool DimensionsBalance, class lhs, class rhs>
+constexpr auto use_dimension_names() {
+  static_assert(DimensionsBalance);
+}
+
 /// Equality
-template <class Units0, class Units1, class BaseType, class Tag,
-          typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
-constexpr auto operator==(const Quantity<Units0, BaseType, Tag>& a,
-                          const Quantity<Units1, BaseType, Tag>& b) {
+template <class Units0, class Units1, class BaseType, class Tag0, class Tag1>
+constexpr auto operator==(const Quantity<Units0, BaseType, Tag0>& a,
+                          const Quantity<Units1, BaseType, Tag1>& b) {
+  use_dimension_names<same_dimension(Units0{}, Units1{}),
+                      decltype(make_names_from_dimension(Units0{})),
+                      decltype(make_names_from_dimension(Units1{}))>();
+  static_assert(std::is_same_v<Tag0, Tag1>);
   const auto& [aa, bb] = rescale(a, b);
   return aa.underlying_value() == bb.underlying_value();
 }
@@ -220,48 +246,73 @@ constexpr auto operator!=(const Quantity<Units0, BaseType, Tag>& a,
 }
 
 /// Less than
-template <class Units0, class Units1, class BaseType, class Tag,
+template <class Units0, class Units1, class BaseType, class Tag0, class Tag1,
           typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
-constexpr auto operator<(const Quantity<Units0, BaseType, Tag>& a,
-                         const Quantity<Units1, BaseType, Tag>& b) {
+constexpr auto operator<(const Quantity<Units0, BaseType, Tag0>& a,
+                         const Quantity<Units1, BaseType, Tag1>& b) {
+  use_dimension_names<same_dimension(Units0{}, Units1{}),
+                      decltype(make_names_from_dimension(Units0{})),
+                      decltype(make_names_from_dimension(Units1{}))>();
+  static_assert(std::is_same_v<Tag0, Tag1>);
   const auto& [aa, bb] = rescale(a, b);
   return aa.underlying_value() < bb.underlying_value();
 }
 
 /// Less than or equal to
-template <class Units0, class Units1, class BaseType, class Tag,
+template <class Units0, class Units1, class BaseType, class Tag0, class Tag1,
           typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
-constexpr auto operator<=(const Quantity<Units0, BaseType, Tag>& a,
-                          const Quantity<Units1, BaseType, Tag>& b) {
+constexpr auto operator<=(const Quantity<Units0, BaseType, Tag0>& a,
+                          const Quantity<Units1, BaseType, Tag1>& b) {
+  use_dimension_names<same_dimension(Units0{}, Units1{}),
+                      decltype(make_names_from_dimension(Units0{})),
+                      decltype(make_names_from_dimension(Units1{}))>();
+  static_assert(std::is_same_v<Tag0, Tag1>);
   const auto& [aa, bb] = rescale(a, b);
   return aa.underlying_value() <= bb.underlying_value();
 }
 
 /// Greater than
-template <class Units0, class Units1, class BaseType, class Tag,
+template <class Units0, class Units1, class BaseType, class Tag0, class Tag1,
           typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
-constexpr auto operator>(const Quantity<Units0, BaseType, Tag>& a,
-                         const Quantity<Units1, BaseType, Tag>& b) {
+constexpr auto operator>(const Quantity<Units0, BaseType, Tag0>& a,
+                         const Quantity<Units1, BaseType, Tag1>& b) {
+  use_dimension_names<same_dimension(Units0{}, Units1{}),
+                      decltype(make_names_from_dimension(Units0{})),
+                      decltype(make_names_from_dimension(Units1{}))>();
+  static_assert(std::is_same_v<Tag0, Tag1>);
   const auto& [aa, bb] = rescale(a, b);
   return aa.underlying_value() > bb.underlying_value();
 }
 
 /// Greater than or equal
-template <class Units0, class Units1, class BaseType, class Tag,
-          typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
-constexpr auto operator>=(const Quantity<Units0, BaseType, Tag>& a,
-                          const Quantity<Units1, BaseType, Tag>& b) {
+template <class Units0, class Units1, class BaseType, class Tag0, class Tag1>
+constexpr auto operator>=(const Quantity<Units0, BaseType, Tag0>& a,
+                          const Quantity<Units1, BaseType, Tag1>& b) {
+  use_dimension_names<same_dimension(Units0{}, Units1{}),
+                      decltype(make_names_from_dimension(Units0{})),
+                      decltype(make_names_from_dimension(Units1{}))>();
+  static_assert(std::is_same_v<Tag0, Tag1>);
+
   const auto& [aa, bb] = rescale(a, b);
   return aa.underlying_value() >= bb.underlying_value();
 }
 
 /// Within a tolerance
-template <class Units0, class Units1, class Units2, class BaseType, class Tag,
-          typename = std::enable_if_t<same_dimension(Units0{}, Units1{}) &&
-                                      same_dimension(Units0{}, Units2{})>>
-constexpr auto within(const Quantity<Units0, BaseType, Tag>& a,
-                      const Quantity<Units1, BaseType, Tag>& b,
-                      const Quantity<Units2, BaseType, Tag>& tol) {
+template <class Units0, class Units1, class Units2, class BaseType, class Tag0,
+          class Tag1, class Tag2>
+constexpr auto within(const Quantity<Units0, BaseType, Tag0>& a,
+                      const Quantity<Units1, BaseType, Tag1>& b,
+                      const Quantity<Units2, BaseType, Tag2>& tol) {
+  use_dimension_names<same_dimension(Units0{}, Units1{}),
+                      decltype(make_names_from_dimension(Units0{})),
+                      decltype(make_names_from_dimension(Units1{}))>();
+  use_dimension_names<same_dimension(Units0{}, Units2{}),
+                      decltype(make_names_from_dimension(Units0{})),
+                      decltype(make_names_from_dimension(Units2{}))>();
+
+  static_assert(std::is_same_v<Tag0, Tag1>);
+  static_assert(std::is_same_v<Tag0, Tag2>);
+
   assert(tol.underlying_value() >= 0);
   const auto delta = a - b;
   using Delta = decltype(delta);
@@ -273,20 +324,28 @@ constexpr auto within(const Quantity<Units0, BaseType, Tag>& a,
 // ************************************************************************* /
 
 /// Addition
-template <class Units0, class Units1, class BaseType, class Tag,
-          typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
-constexpr auto operator+(const Quantity<Units0, BaseType, Tag>& a,
-                         const Quantity<Units1, BaseType, Tag>& b) {
+template <class Units0, class Units1, class BaseType, class Tag0, class Tag1>
+constexpr auto operator+(const Quantity<Units0, BaseType, Tag0>& a,
+                         const Quantity<Units1, BaseType, Tag1>& b) {
+  use_dimension_names<same_dimension(Units0{}, Units1{}),
+                      decltype(make_names_from_dimension(Units0{})),
+                      decltype(make_names_from_dimension(Units1{}))>();
+  static_assert(std::is_same_v<Tag0, Tag1>);
+
   const auto& [aa, bb] = rescale(a, b);
   auto tmp{aa};
   return tmp += bb;
 }
 
 /// Subtraction
-template <class Units0, class Units1, class BaseType, class Tag,
-          typename = std::enable_if_t<same_dimension(Units0{}, Units1{})>>
-constexpr auto operator-(const Quantity<Units0, BaseType, Tag>& a,
-                         const Quantity<Units1, BaseType, Tag>& b) {
+template <class Units0, class Units1, class BaseType, class Tag0, class Tag1>
+constexpr auto operator-(const Quantity<Units0, BaseType, Tag0>& a,
+                         const Quantity<Units1, BaseType, Tag1>& b) {
+  use_dimension_names<same_dimension(Units0{}, Units1{}),
+                      decltype(make_names_from_dimension(Units0{})),
+                      decltype(make_names_from_dimension(Units1{}))>();
+  static_assert(std::is_same_v<Tag0, Tag1>);
+
   const auto& [aa, bb] = rescale(a, b);
   auto tmp{aa};
   return tmp -= bb;
@@ -299,11 +358,10 @@ constexpr auto operator-(const Quantity<Units0, BaseType, Tag>& a,
 /// Division, creates a new Quantity Type with the correct dimensions and a
 /// prefix of unity (1). For example:
 ///
-template <
-    class Units0, class Units1, class BaseType, class Tag0, class Tag1,
-    typename = std::enable_if_t<tags_compatible_multiplication<Tag0, Tag1>()>>
+template <class Units0, class Units1, class BaseType, class Tag0, class Tag1>
 constexpr auto operator/(const Quantity<Units0, BaseType, Tag0>& a,
                          const Quantity<Units1, BaseType, Tag1>& b) {
+  static_assert(tags_compatible_multiplication<Tag0, Tag1>());
   using Units = units::derived_unity_t<decltype(Units0{} / Units1{})>;
   auto a_val = a.underlying_value_no_prefix();
   auto b_val = b.underlying_value_no_prefix();
@@ -317,11 +375,10 @@ constexpr auto operator/(const Quantity<Units0, BaseType, Tag0>& a,
 // convert types bases dimensions to their multiple, then return
 // a variable with a prefix of unity
 // e.g. 1 km * 2 km  ->  1,000 * 2,000 m^2 = 2,000,000 m^2
-template <
-    class Units0, class Units1, class BaseType, class Tag0, class Tag1,
-    typename = std::enable_if_t<tags_compatible_multiplication<Tag0, Tag1>()>>
+template <class Units0, class Units1, class BaseType, class Tag0, class Tag1>
 constexpr auto operator*(const Quantity<Units0, BaseType, Tag0>& a,
                          const Quantity<Units1, BaseType, Tag1>& b) {
+  static_assert(tags_compatible_multiplication<Tag0, Tag1>());
   using Units = units::derived_unity_t<decltype(Units0{} * Units1{})>;
   auto a_val = a.underlying_value_no_prefix();
   auto b_val = b.underlying_value_no_prefix();
