@@ -69,6 +69,26 @@ ton mass = 1.5
 metres_per_second velocity = 40 
 joules energy = kinetic_energy(mass, velocity)
 ```
+## Error messages
+The purpose of this library is to produce compiler errors, so a simple example (extracted from the test suite which uses Catch2):
+```C++
+    THEN("Check compiler error") { REQUIRE(inch{2} == kg{1}); }
+```
+is (in GCC):
+```
+In file included from /home/mike/Dropbox_UoM/Coding/units/common_quantities.hpp:6,
+                 from /home/mike/Dropbox_UoM/Coding/units/common_quantities_test.cpp:1:
+/home/mike/Dropbox_UoM/Coding/units/quantity.hpp: In instantiation of ‘constexpr auto use_dimension_names() [with bool DimensionsBalance = false; lhs = Names<units::Length<1, 1>, units::Mass<0, 1>, units::Time<0, 1>, units::Current<0, 1>, units::Temperature<0, 1>, units::Amount<0, 1>, units::Luminosity<0, 1> >; rhs = Names<units::Length<0, 1>, units::Mass<1, 1>, units::Time<0, 1>, units::Current<0, 1>, units::Temperature<0, 1>, units::Amount<0, 1>, units::Luminosity<0, 1> >]’:
+/home/mike/Dropbox_UoM/Coding/units/quantity.hpp:234:69:   required from ‘constexpr auto operator==(const Quantity<Units0, BaseType, Tag>&, const Quantity<Units1, BaseType, Tag1>&) [with Units0 = units::Dimensions<std::ratio<1, 1>, std::ratio<0, 1>, std::ratio<0, 1>, std::ratio<0, 1>, std::ratio<0, 1>, std::ratio<0, 1>, std::ratio<0, 1>, std::ratio<254, 10000> >; Units1 = units::Dimensions<std::ratio<0, 1>, std::ratio<1, 1>, std::ratio<0, 1>, std::ratio<0, 1>, std::ratio<0, 1>, std::ratio<0, 1>, std::ratio<0, 1>, std::ratio<1, 1> >; BaseType = double; Tag0 = std::integral_constant<bool, false>; Tag1 = std::integral_constant<bool, false>]’
+/home/mike/Dropbox_UoM/Coding/units/common_quantities_test.cpp:20:36:   required from here
+/home/mike/Dropbox_UoM/Coding/units/quantity.hpp:225:17: error: static assertion failed
+  225 |   static_assert(DimensionsBalance);
+```
+From the bottom moving up:
+*  The static_assert(DimensionsBalance) is where the static assert fired.
+*  common_quanities_test.cpp:20 is where the REQUIRE(inch{2} == kg{1}) was written (the bug).
+*  quantity.hpp:234 the call to the equality operator, showing the types of the Quantities being compared - the first 7 std::ratios of each Quantity are the powers of the 7 fundamental types, the last std::ratio is the prefix.
+*  details of the static_assert - the "use_dimension_names" is just a way of converting the std::ratios used in the derived_t/Dimensions class to the underlying types with names like Length. Here the units on the left hand side (lhs) are Length<1>, or m, and the rhs are Mass<1>, or kg. 
 ## Library types
 ### Quantity
 The joules, ton, metres_per_second types used above are specialisation of the Quantity class in the units library.  The Quantity class is a bit like a strong typedef containing:
@@ -185,6 +205,11 @@ The usual comparison operators are provided: ==, !=, <, <=, >, =>, which account
 ```C++ 
 assert(tons{1} > kg{999});
 assert(tons{1} < kg{1001});
+```
+Comparisons between Quantities and other algebraic types (float, double etc) are defined for Quantities with dimensionless derived_ts, which commonly occur with ratios:
+```C++
+assert((tons{1.0} / kg{1.0}) > 0.9999); // fine, mass / mass is dimensionless so can be compared to a double 
+assert((tons(1.0) / metres3{1}) > 0.9999); // error, mass / volume gives a density, kg / m^3, so cannot be compared to a double
 ```
 
 ## Numeric
