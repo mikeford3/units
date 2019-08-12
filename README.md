@@ -1,7 +1,7 @@
 A library to allow the use of arbitrary physical units in C++ code to allow compile time checks (dimensional analysis) and better naming without runtime overhead.
 
 # Problem
-To calculate kinetic energy from velocity and mass $(\frac{1}{2} mv^2)$ you could write a function using doubles, using comments for the units:
+To calculate kinetic energy from velocity and mass (KE = 0.5mv^2) you could write a function using doubles, using comments for the units:
 
 ```C++
 // Takes mass in kg, velocity in m/s and returns energy in joules
@@ -59,7 +59,7 @@ metres_per_second velocity{40}
 joules energy = kinetic_energy(velocity, mass)      // 2, 3
 ```
 The compiler will error at:
-1. mass * velocity gives momentum $[kgms^{-1}]$ which cannot be assigned to energy $[kgm^2s^{-2}]$ 
+1. mass * velocity gives momentum [kgm/s] which cannot be assigned to energy [kgm^2/s^2]
 2. velocity is being passed as an argument to the mass parameters, and mass to velocity, which cannot be assigned to each other. 
 3. The conversion of mass from tons to kg is handled by the compiler.
 
@@ -288,7 +288,7 @@ epsilon(Quantity) // calls std::numeric_limits<Quantity>::epsilon;
 
 # Dependencies
 * Catch - unit testing library, available on github.
-* StringConstant - compile time strings (to be removed now that constexpr strings and vectors are in C++20). The header file is included in this repo, originally copied from https://gist.github.com/dsanders11/8951887.
+* StringConstant - compile time strings (to be removed now that constexpr strings and vectors are in C++20). The header file is included in this repo, originally copied from https://gist.github.com/dsanders11/8951887. Some minor changes to add the out stream operator (<<) and to silence unused variable warnings (which would stop StringConstant being C++14 so not suggested back to the author).
 * boost/hana - metaprogramming library.
 
 # Built and tested with
