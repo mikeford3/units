@@ -6,8 +6,6 @@
 #include <tuple>
 #include <utility>
 
-namespace hana = boost::hana;
-
 template <class, class, class>
 class Quantity;
 

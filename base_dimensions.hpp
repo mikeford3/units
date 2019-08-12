@@ -17,11 +17,10 @@ namespace units {
     return std::true_type{};
   }
 
+  // Use std::ratio to simplify n, d by common denominator
   template <intmax_t n = 1, intmax_t d = 1>
   struct BaseUnit {
     constexpr static auto exp = std::ratio<n, d>{};
-    constexpr static auto num = n;
-    constexpr static auto den = d;
   };
 
 #define MAKE_BASE_UNIT(NAME, ABBREVIATION, LOWER)                              \

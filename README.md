@@ -1,7 +1,7 @@
 A library to allow the use of arbitrary physical units in C++ code to allow compile time checks (dimensional analysis) and better naming without runtime overhead.
 
 # Problem
-To calculate kinetic energy from velocity and mass $(\frac{1}{2} mv^2)$ you could write a function using doubles, like one of the following:
+To calculate kinetic energy from velocity and mass $(\frac{1}{2} mv^2)$ you could write a function using doubles, using comments for the units:
 
 ```C++
 // Takes mass in kg, velocity in m/s and returns energy in joules
@@ -32,15 +32,20 @@ double energy = kinetic_energy(velocity, mass / 100) // multiply by 1000 to conv
 but... 
 * the units of the energy calculated in the function are wrong (forgot to square the velocity), but this can't be detected by the compiler,
 * the units of the arguments and return value aren't checked, they are in the wrong order,
-* the conversion from tons to kg is wrong. Easy enough to spot here, but what conversion factor is needed to get pressure in MPa from square inches and pounds?
+* the conversion from tons to kg is wrong. Easy enough to spot here, but what conversion factor is needed to get pressure in MPa from psi?
 
-The problem is that the compiler sees a function that takes some doubles, multiples them together and returns a double, and therefore generates perfectly valid code.
+The problem is that the compiler sees a function that takes some doubles, multiples them together and returns a double, and therefore generates perfectly valid code. What we want is to create a wrapper around the doubles, similar to a strong typedef, but more flexible as it must generate the correct type  when operations are applied to two different types (such as multiplication). The important properties are:
+* Dimensional analysis checking - error if an incorrect operation is requested, preferable at compile time.
+* No runtime overhead - this should be useful for engineering and scientific applications which must run as fast as possible to solve large problems.
+* Understandable errors.
+
 
 # Examples
 ## Simple example
-Using specialisations of the units::Quantity class to define joules, kg, metres_per_second etc:
+Using the units::Quantity class to define joules, kg, metres_per_second etc:
 ```C++
 #include <units.hpp>
+#include <common_quantities.hpp>
 // joules   in [kg m^2 s^-2]
 // kg       in [kg]
 // velocity in [m/s]
@@ -49,8 +54,8 @@ joules kinetic_energy(kg mass, metres_per_second velocity) {
     return energy;
 }
 // and call it
-ton mass = 1.5 
-metres_per_second velocity = 40 
+ton mass{1.5}
+metres_per_second velocity{40}
 joules energy = kinetic_energy(velocity, mass)      // 2, 3
 ```
 The compiler will error at:
@@ -65,8 +70,8 @@ joules kinetic_energy(kg mass, metres_per_second velocity) {
     return energy;
 }
 // and call it
-ton mass = 1.5 
-metres_per_second velocity = 40 
+ton mass{1.5} 
+metres_per_second velocity{40} 
 joules energy = kinetic_energy(mass, velocity)
 ```
 ## Error messages
@@ -92,13 +97,16 @@ From the bottom moving up:
 ## Library types
 ### Quantity
 The joules, ton, metres_per_second types used above are specialisation of the Quantity class in the units library.  The Quantity class is a bit like a strong typedef containing:
-* the dimensions, such as Length and Mass, and a prefix (or scaling parameter) to distinguish between tons, kg, grams, wrapped in a derived_t class,
+* the dimensions, such as Length and Mass, and a prefix (or scaling parameter) to distinguish between tons, kg, grams, etc. These are wrapped in a derived_t class,
 * an underlying data type, defaults to double, 
-* an optional tag to distinguish between quantities with the same units that the user wants to keep separate.
+* an optional tag to distinguish between quantities with the same units that the user wants to keep separate, defaults to std::false_type.
 ```C++
 template<class Units, class UnderlyingType = double, class Tag = std::false_type>
-class Quantity{...}
-// where Units is an instance of the derived_t
+class Quantity{
+    // where Units is an instance of the derived_t
+    UnderlyingType value;
+    ... constructors & operators
+};
 ```
 ### derived_t
 The derived_t containes the dimensions and prefix the Quantity uses. It accepts variadic template arguments which can be: 
@@ -111,9 +119,9 @@ class derived_t{...}
 
 ```
 ### Base units
-These correspond to the 7 base dimension in the SI system, listed above, and the numerator and denominator of their exponent, and the prefix.
+These correspond to the 7 base dimension in the SI system, listed above, and the numerator and denominator of their exponent.
 ```C++
-template <intmax_t n = 1, intmax_t d = 1, class prefix = std::ratio<1,1>>
+template <intmax_t n = 1, intmax_t d = 1>
 struct Length{...}
 
 template <intmax_t n = 1, intmax_t d = 1>
@@ -138,7 +146,7 @@ struct Luminosity{...}
 For example, the Quantities used above could be defined as follows (written top down for ease of reading)
 ```C++
 // Quantities
-using kg = Quantity<kg_t> // types with an _t are derived_t types
+using kg = Quantity<kg_t> // types with a _t are derived_t types
 using ton = Quantity<ton_t>; 
 using metres_per_second = Quantity<metres_per_sec_t>;
 using joule = Quanity<joule_t>;
@@ -184,11 +192,11 @@ Negative roots :
 
         m⁻⁰⋅⁵⁰  m⁻⁰⋅³³  m⁻⁰⋅²⁵  m⁻⁰⋅²⁰  m⁻⁰⋅¹⁶  m⁻⁰⋅¹⁴
         m⁻⁰⋅¹²  m⁻⁰⋅⁵⁰  m⁻⁰⋅⁴⁰  m⁻⁰⋅²⁸
-Positive ints (and 0): 
+Positive ints (and 0, so the first "missing" value is dimensionless): 
 
                 m       m²      m³      m⁴      m⁵      m⁶
         m⁷      m⁸      m⁹      m¹⁰     m¹¹     m¹²
-Negative ints (and 0): 
+Negative ints (and 0, so the first "missing" value is dimensionless): 
 
                 m⁻¹     m⁻²     m⁻³     m⁻⁴     m⁻⁵     m⁻⁶
         m⁻⁷     m⁻⁸     m⁻⁹     m⁻¹⁰    m⁻¹¹    m⁻¹²
@@ -277,6 +285,16 @@ huge(Quantity) // calls std::numeric_limits<Quantity>::max;
 tiny(Quantity) // calls std::numeric_limits<Quantity>::min; 
 epsilon(Quantity) // calls std::numeric_limits<Quantity>::epsilon; 
 ```
+
+# Dependencies
+* Catch - unit testing library, available on github.
+* StringConstant - compile time strings (to be removed now that constexpr strings and vectors are in C++20). The header file is included in this repo, originally copied from https://gist.github.com/dsanders11/8951887.
+* boost/hana - metaprogramming library.
+
+# Built and tested with
+* GCC 9.1.0 on Ubuntu 19.04, C++2a flag
+* Clang 8.0.0-3 on Ubuntu 19.04 C++2a flag
+
 # Weaknesses
 ## Compile Time
 Are bad.
@@ -285,10 +303,11 @@ I think defining the commonly used types in a .cpp file would allow the compiler
 ## Debug Runtime
 Are slower than using doubles by a rough factor of 3 in the test cases uses to exercise the code. The Quanity classes are simple for the optimiser to see through - all operations use the single member variable only and the class is only the size of the underlying value (typically double), so release builds are usually as fast as the use of doubles, generating the same code (viewed a number of times in Godbolt).
 
-# Dependencies
-Catch - unit testing
-string_constants - compile time strings (to be removed now that constexpr strings and vectors are in C++20)
-boost/hana - metaprogramming library
+## How about C++98/03/11/14 or GCC 4,5,6...?
+Units hasn't been tested with older compilers or standards. It wasn't written with compatibility as a goal, and Boost Hana requires a very recent compiler in any event.
+
+
+
 
 
 

@@ -1,4 +1,5 @@
 #pragma once
+
 #include "base_dimensions.hpp"
 #include <boost/hana.hpp>
 #include <cassert>

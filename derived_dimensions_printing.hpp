@@ -1,6 +1,8 @@
 #pragma once
 
 #include "derived_dimensions_impl.hpp"
+#include "string_constants.hpp"
+
 #include <cmath>
 #include <limits>
 #include <locale>
@@ -8,7 +10,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
-#include <string_constants.hpp>
 
 namespace units {
 
